@@ -52,10 +52,51 @@ import {
   Heart,
   CreditCard,
   Award,
-  CheckCircle
+  CheckCircle,
+  Dumbbell,
+  Trophy,
+  History,
+  HelpCircle,
+  Tv,
+  Radio,
+  Sun,
+  Moon,
+  BarChart3,
+  Menu,
+  Bell,
+  ExternalLink,
+  RefreshCcw,
+  Sparkles,
+  Zap,
+  Globe2,
+  Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Article, Event, SiteSettings, Comment, Subscriber, MediaAsset, SupportMessage, Poll, UserProfile, LiveBlog, LiveUpdate, WebTV, Classified } from '../types';
+import { 
+  Article, 
+  Event, 
+  SiteSettings, 
+  Comment, 
+  Subscriber, 
+  MediaAsset, 
+  SupportMessage, 
+  Poll, 
+  UserProfile, 
+  LiveBlog, 
+  LiveUpdate, 
+  WebTV, 
+  Classified,
+  HistoryEvent,
+  MapEvent,
+  AkwabaVote,
+  DiasporaStory,
+  SuccessStory,
+  Podcast,
+  Quiz,
+  QuizQuestion,
+  QuizScore,
+  Challenge
+} from '../types';
 import { cn, optimizeImage } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { format } from 'date-fns';
@@ -354,6 +395,211 @@ export const PollEditor = ({ poll, onSave, onCancel }: { poll: Partial<Poll>, on
   );
 };
 
+const AdminSidebar = ({ 
+  activeTab, 
+  setActiveTab, 
+  isSidebarOpen, 
+  setIsSidebarOpen,
+  onLogout 
+}: { 
+  activeTab: string, 
+  setActiveTab: (t: any) => void, 
+  isSidebarOpen: boolean,
+  setIsSidebarOpen: (b: boolean) => void,
+  onLogout: () => void
+}) => {
+  const menuItems = [
+    { id: 'articles', label: 'Articles', icon: FileText },
+    { id: 'events', label: 'Événements', icon: Calendar },
+    { id: 'polls', label: 'Sondages', icon: BarChart3 },
+    { id: 'live-blog', label: 'Direct', icon: Zap },
+    { id: 'web-tv', label: 'Web TV', icon: Tv },
+    { id: 'classifieds', label: 'Annonces', icon: Megaphone },
+    { id: 'comments', label: 'Commentaires', icon: MessageSquare },
+    { id: 'media', label: 'Médias', icon: ImagePlus },
+    { id: 'subscribers', label: 'Abonnés', icon: Users },
+    { id: 'history', label: 'Histoire', icon: History },
+    { id: 'map', label: 'Carte', icon: MapIcon },
+    { id: 'meter', label: 'Meter', icon: TrendingUp },
+    { id: 'diaspora', label: 'Diaspora', icon: Globe2 },
+    { id: 'success', label: 'Afrique Gagne', icon: Trophy },
+    { id: 'podcasts', label: 'Radio', icon: Radio },
+    { id: 'quiz', label: 'Quiz', icon: HelpCircle },
+    { id: 'challenges', label: 'Défis', icon: Dumbbell },
+    { id: 'analytics', label: 'Statistiques', icon: Activity },
+    { id: 'payments', label: 'Paiements', icon: CreditCard },
+    { id: 'settings', label: 'Paramètres', icon: Settings },
+  ] as const;
+
+  return (
+    <>
+      {/* Mobile Backdrop */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-[260px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform lg:translate-x-0",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+              <Zap size={20} fill="currentColor" />
+            </div>
+            <div>
+              <h1 className="font-black text-lg tracking-tight dark:text-white">Admin</h1>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Akwaba Info</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-2 lg:hidden text-slate-400 hover:text-slate-900 dark:hover:text-white"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Menu Items */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                if (window.innerWidth < 1024) setIsSidebarOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black transition-all group",
+                activeTab === item.id 
+                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                  : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              )}
+            >
+              <item.icon size={18} className={cn(
+                "transition-transform group-hover:scale-110",
+                activeTab === item.id ? "text-white" : "text-slate-400 group-hover:text-primary"
+              )} />
+              {item.label}
+              {activeTab === item.id && (
+                <motion.div 
+                  layoutId="active-nav"
+                  className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm"
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+          <button 
+            onClick={onLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group"
+          >
+            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+            Déconnexion
+          </button>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+const AdminHeader = ({ 
+  title, 
+  searchTerm, 
+  setSearchTerm, 
+  onNew, 
+  onExport, 
+  darkMode, 
+  setDarkMode,
+  setIsSidebarOpen,
+  activeTab
+}: { 
+  title: string, 
+  searchTerm: string, 
+  setSearchTerm: (s: string) => void,
+  onNew?: () => void,
+  onExport: () => void,
+  darkMode: boolean,
+  setDarkMode: (b: boolean) => void,
+  setIsSidebarOpen: (b: boolean) => void,
+  activeTab: string
+}) => {
+  return (
+    <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="p-2 -ml-2 lg:hidden text-slate-500"
+        >
+          <Menu size={24} />
+        </button>
+        <h2 className="text-xl font-black tracking-tight dark:text-white hidden sm:block">{title}</h2>
+      </div>
+
+      <div className="flex-1 max-w-xl mx-8 hidden md:block">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Rechercher..."
+            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 dark:text-white transition-all"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button 
+          onClick={() => setDarkMode(!darkMode)}
+          className="p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-500 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        
+        <button 
+          className="p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-500 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all relative"
+        >
+          <Bell size={20} />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
+        </button>
+
+        <div className="h-8 w-[1px] bg-slate-200 dark:border-slate-800 mx-2" />
+
+        <button 
+          onClick={onExport}
+          className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
+        >
+          <Copy size={14} /> EXPORT
+        </button>
+
+        {onNew && (
+          <button 
+            onClick={onNew}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20"
+          >
+            <Plus size={14} /> NOUVEAU
+          </button>
+        )}
+      </div>
+    </header>
+  );
+};
+
+const Activity = ({ size, className }: { size?: number, className?: string }) => <BarChart3 size={size} className={className} />;
+
 export const AdminDashboard = ({ 
   articles, 
   events,
@@ -435,9 +681,20 @@ export const AdminDashboard = ({
   initialTab?: string,
   setActiveNotification?: (n: { message: string, type: 'success' | 'urgent' | 'info' } | null) => void
 }) => {
-  const [activeTab, setActiveTab] = useState<'articles' | 'events' | 'comments' | 'subscribers' | 'media' | 'settings' | 'analytics' | 'alerts' | 'support' | 'polls' | 'premium' | 'payments' | 'live-blog' | 'web-tv' | 'classifieds'>(
-    initialTab as any || (localStorage.getItem('akwaba_admin_tab') as any) || 'articles'
+  const [activeTab, setActiveTab] = useState<string>(
+    initialTab || (localStorage.getItem('akwaba_admin_tab')) || 'dashboard'
   );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('akwaba_dark_mode') === 'true');
+
+  useEffect(() => {
+    localStorage.setItem('akwaba_dark_mode', darkMode.toString());
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     try {
@@ -630,204 +887,120 @@ export const AdminDashboard = ({
   const filteredMedia = mediaLibrary.filter(m => m.url.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4 space-y-10">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pb-4 border-b border-slate-50">
-        <div className="flex items-start gap-5">
-          <div className="p-4 bg-primary text-white rounded-[24px] shadow-2xl shadow-primary/30 shrink-0">
-            <LayoutDashboard size={32} />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-2xl md:text-4xl font-black tracking-tight leading-tight">Tableau de Bord</h2>
-            <p className="text-slate-400 text-sm font-medium italic">Contrôle total : articles, événements et paramètres.</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button 
-            onClick={onGenerateCode}
-            className="flex-1 md:flex-none px-6 py-4 bg-slate-900 text-white font-black rounded-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 text-xs shadow-xl"
-          >
-            <Copy size={18} /> EXPORT
-          </button>
-          {(activeTab === 'articles' || activeTab === 'events' || activeTab === 'polls' || activeTab === 'live-blog' || activeTab === 'web-tv' || activeTab === 'classifieds') && (
-            <button 
-              onClick={() => {
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors">
+      <AdminSidebar 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        onLogout={onLogout}
+      />
+
+      <div className="flex-1 lg:ml-[260px] flex flex-col min-h-screen">
+        <AdminHeader 
+          activeTab={activeTab} 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm} 
+          darkMode={darkMode} 
+          setDarkMode={setDarkMode}
+          onNew={
+            (activeTab === 'articles' || activeTab === 'events' || activeTab === 'polls' || activeTab === 'live-blog' || activeTab === 'web-tv' || activeTab === 'classifieds') 
+            ? () => {
                 if (activeTab === 'articles') onCreateArticle();
                 else if (activeTab === 'events') onCreateEvent();
                 else if (activeTab === 'polls') onCreatePoll();
                 else if (activeTab === 'live-blog') onCreateLiveBlog();
                 else if (activeTab === 'web-tv') onCreateWebTV();
                 else if (activeTab === 'classifieds') onCreateClassified();
-              }}
-              className="flex-1 md:flex-none px-6 py-4 bg-primary text-white font-black rounded-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3 text-xs shadow-xl shadow-primary/20 border-2 border-white"
-            >
-              <Plus size={18} /> 
-              NOUVEAU
-            </button>
-          )}
-          <button 
-            onClick={onLogout}
-            className="p-4 bg-white text-slate-400 border border-slate-100 rounded-2xl hover:text-red-500 hover:bg-white transition-all shadow-sm group"
-          >
-            <LogOut size={22} className="group-hover:rotate-12 transition-transform" />
-          </button>
-        </div>
-      </div>
+              }
+            : undefined
+          }
+          onExport={onGenerateCode}
+          setIsSidebarOpen={setIsSidebarOpen}
+        />
 
-      {/* Modern Horizontal Tabs with snap and custom scroll */}
-      <div className="relative group">
-        <div className="flex border-b border-slate-100 overflow-x-auto whitespace-nowrap custom-scrollbar snap-x scroll-smooth -mx-4 px-4 lg:mx-0 lg:px-0">
-        <button 
-          onClick={() => setActiveTab('articles')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-xs md:text-sm",
-            activeTab === 'articles' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Articles
-        </button>
-        <button 
-          onClick={() => setActiveTab('events')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'events' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Agenda
-        </button>
-        <button 
-          onClick={() => setActiveTab('polls')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'polls' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Sondages
-        </button>
-        <button 
-          onClick={() => setActiveTab('live-blog')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'live-blog' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Direct
-        </button>
-        <button 
-          onClick={() => setActiveTab('web-tv')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'web-tv' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Web TV
-        </button>
-        <button 
-          onClick={() => setActiveTab('classifieds')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'classifieds' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Petites Annonces
-        </button>
-        <button 
-          onClick={() => setActiveTab('comments')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'comments' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Modération
-        </button>
-        <button 
-          onClick={() => setActiveTab('media')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'media' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Médias
-        </button>
-        <button 
-          onClick={() => setActiveTab('subscribers')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'subscribers' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Abonnés
-        </button>
-        <button 
-          onClick={() => setActiveTab('alerts')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'alerts' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Alertes Push
-        </button>
-        <button 
-          onClick={() => setActiveTab('analytics')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'analytics' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Statistiques
-        </button>
-        <button 
-          onClick={() => setActiveTab('support')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'support' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Support Client
-        </button>
-        <button 
-          onClick={() => setActiveTab('settings')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'settings' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Paramètres
-        </button>
-        <button 
-          onClick={() => setActiveTab('premium')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'premium' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Abonnements
-        </button>
-        <button 
-          onClick={() => setActiveTab('payments')}
-          className={cn(
-            "px-6 py-4 font-black transition-all border-b-2 shrink-0 text-sm",
-            activeTab === 'payments' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-          )}
-        >
-          Gestion des paiements
-        </button>
-      </div>
-    </div>
+        <main className="flex-1 p-4 lg:p-8 animate-in fade-in duration-500">
+          {activeTab === 'dashboard' ? (
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { label: 'Total Articles', value: articles.length, icon: FileText, color: 'text-primary', bg: 'bg-primary/5' },
+                  { label: 'Vues Totales', value: (stats?.totalViews ?? articles.reduce((acc, a) => acc + (a.views || 0), 0)).toLocaleString(), icon: Eye, color: 'text-indigo-500', bg: 'bg-indigo-500/5' },
+                  { label: 'Abonnés', value: (stats?.totalSubscribers ?? subscribers.length).toLocaleString(), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
+                  { label: 'Revenu Mensuel', value: `${(stats?.totalRevenue || 0).toLocaleString()} XOF`, icon: CreditCard, color: 'text-amber-500', bg: 'bg-amber-500/5' }
+                ].map((stat, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    key={stat.label} 
+                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[35px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={cn("p-4 rounded-2xl", stat.bg)}>
+                        <stat.icon className={stat.color} size={28} />
+                      </div>
+                      <TrendingUp className="text-slate-200 dark:text-slate-700" size={24} />
+                    </div>
+                    <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest">{stat.label}</p>
+                    <h3 className="text-3xl font-black mt-2 dark:text-white italic">{stat.value}</h3>
+                  </motion.div>
+                ))}
+              </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div key={activeTab} className="md:col-span-3 space-y-6">
-          {activeTab !== 'settings' && (
-            <div className="relative">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-              <input 
-                type="text" 
-                placeholder="Rechercher..."
-                className="w-full bg-white border border-slate-100 rounded-2xl pl-14 pr-6 py-4 shadow-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              {/* Charts & Recent items could go here */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl">
+                   <h3 className="text-xl font-black mb-6 dark:text-white">Articles Récents</h3>
+                   <div className="space-y-4">
+                     {articles.slice(0, 5).map(article => (
+                       <div key={article.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors group cursor-pointer" onClick={() => onEditArticle(article)}>
+                         <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                           {article.image && <img src={article.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />}
+                         </div>
+                         <div className="flex-1 min-w-0">
+                           <h4 className="font-bold text-slate-900 dark:text-white truncate">{article.title}</h4>
+                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{article.category} • {article.date}</p>
+                         </div>
+                         <div className="text-slate-400 group-hover:text-primary transition-colors">
+                           <ArrowRight size={18} />
+                         </div>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+
+                 <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
+                   <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                     <Activity size={40} />
+                   </div>
+                   <div>
+                     <h3 className="text-xl font-black dark:text-white">Performance du Site</h3>
+                     <p className="text-sm text-slate-500 dark:text-slate-400">Le trafic est en hausse de 12% par rapport à la semaine dernière.</p>
+                   </div>
+                   <button 
+                     onClick={() => setActiveTab('analytics')}
+                     className="px-6 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-xl text-xs uppercase tracking-widest"
+                   >
+                     Voir Rapport Complet
+                   </button>
+                 </div>
+              </div>
             </div>
-          )}
+          ) : (
+            <div className="h-full space-y-8">
+              {activeTab !== 'settings' && activeTab !== 'analytics' && activeTab !== 'support' && activeTab !== 'payments' && (
+                <div className="relative group">
+                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={24} />
+                  <input 
+                    type="text" 
+                    placeholder={`Rechercher dans ${activeTab}...`}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[30px] pl-16 pr-8 py-5 text-lg shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all dark:text-white"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              )}
 
           {activeTab === 'settings' ? (
             <motion.div 
@@ -2181,43 +2354,8 @@ export const AdminDashboard = ({
             </div>
           )}
         </div>
-
-        <div className="space-y-6">
-          <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl space-y-6">
-            <h4 className="font-black text-sm uppercase tracking-widest text-slate-400">Statistiques</h4>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-white/5 p-4 rounded-2xl">
-                <p className="text-[10px] font-bold uppercase text-slate-400">Total Articles</p>
-                <p className="text-3xl font-black mt-1 font-mono tracking-tighter">{articles.length}</p>
-              </div>
-              <div className="bg-white/5 p-4 rounded-2xl">
-                <p className="text-[10px] font-bold uppercase text-slate-400">Commentaires</p>
-                <p className="text-3xl font-black mt-1 font-mono tracking-tighter">{comments.length}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-lg space-y-4">
-            <div className="flex items-center gap-3 text-slate-900">
-              <Settings size={20} />
-              <h4 className="font-bold">Accès Rapide</h4>
-            </div>
-            <div className="space-y-2">
-              <button 
-                onClick={() => setActiveTab('settings')}
-                className="w-full text-left px-4 py-3 bg-slate-50 rounded-xl hover:bg-primary/5 hover:text-primary transition-all text-xs font-bold flex items-center gap-2"
-              >
-                <Info size={14} /> Modifier "À Propos"
-              </button>
-              <button 
-                onClick={() => setActiveTab('comments')}
-                className="w-full text-left px-4 py-3 bg-slate-50 rounded-xl hover:bg-primary/5 hover:text-primary transition-all text-xs font-bold flex items-center gap-2"
-              >
-                <MessageSquare size={14} /> Modération Globale
-              </button>
-            </div>
-          </div>
-        </div>
+      )}
+    </main>
       </div>
     </div>
   );
