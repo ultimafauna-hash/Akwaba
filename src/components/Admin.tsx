@@ -63,6 +63,20 @@ import { fr } from 'date-fns/locale';
 import { SupabaseService } from '../lib/supabase';
 import { MOCK_ARTICLES, MOCK_EVENTS } from '../constants';
 
+// Hook debounce
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 const GitHubImageUpload = ({ 
   value, 
   onChange, 
@@ -2348,34 +2362,11 @@ export const AdminEditor = ({
     ...data
   });
 
-  // Helper to ensure dates are in correct format for inputs and in ASCII
-  const formatForInput = (d: string | null | undefined, inputType: 'date' | 'datetime-local') => {
-    if (!d) return '';
-    const date = new Date(d);
-    if (isNaN(date.getTime())) return '';
-    
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const debouncedContent = useDebounce(formData.content, 1000);
+  const debouncedTitle = useDebounce(formData.title, 1000);
 
-    if (inputType === 'date') return `${year}-${month}-${day}`;
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  const sanitizeDateInput = (val: string | null) => {
-    if (!val) return null;
-    // Replace Arabic-Indic digits with Western digits
-    return val.replace(/[٠-٩]/g, (d) => (d.charCodeAt(0) - 1632).toString())
-              .replace(/[۰-۹]/g, (d) => (d.charCodeAt(0) - 1776).toString());
-  };
-  
-  const [previewMode, setPreviewMode] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [seoGenerated, setSeoGenerated] = useState(false);
-
-  const slugify = (text: string) => {
+  const generateSlug = (text: string) => {
     return text
       .toLowerCase()
       .normalize('NFD')
@@ -2387,9 +2378,7 @@ export const AdminEditor = ({
 
   const generateExcerpt = (content: string, maxLength: number = 150) => {
     if (!content) return '';
-    // Clean markdown basics
     const cleanContent = content.replace(/[#*`_\[\]()]/g, '').trim();
-    // Get first two sentences
     const sentences = cleanContent.split(/[.!?]/).filter(s => s.trim().length > 0);
     let excerpt = sentences.slice(0, 2).join('. ').trim();
     if (excerpt.length > maxLength) {
@@ -2409,6 +2398,16 @@ export const AdminEditor = ({
       seo = `${seo} - Akwaba Info`;
     }
     return seo;
+  };
+
+  const generateMetaDescription = (content: string, maxLength: number = 160) => {
+    if (!content) return '';
+    const cleanContent = content.replace(/[#*`_\[\]()]/g, '').trim();
+    let desc = cleanContent;
+    if (desc.length > maxLength) {
+      desc = desc.substring(0, maxLength).trim() + '...';
+    }
+    return desc;
   };
 
   const calculateReadingTime = (content: string) => {
@@ -2438,12 +2437,69 @@ export const AdminEditor = ({
       .map(entry => entry[0]);
   };
 
+  // Automatic SEO generation on content change
+  useEffect(() => {
+    if (debouncedContent && debouncedContent.length > 100) {
+      const updates: any = {};
+      if (!touchedFields.excerpt) updates.excerpt = generateExcerpt(debouncedContent);
+      if (!touchedFields.readingTime && type === 'article') updates.readingTime = calculateReadingTime(debouncedContent);
+      if (!touchedFields.seoDescription) updates.seoDescription = generateMetaDescription(debouncedContent);
+      if (!touchedFields.tags && type === 'article' && (formData.tags?.length === 0 || !touchedFields.tags)) {
+        updates.tags = extractTags(debouncedContent);
+      }
+      
+      if (Object.keys(updates).length > 0) {
+        setFormData((prev: any) => ({ ...prev, ...updates }));
+      }
+    }
+  }, [debouncedContent]);
+
+  // Automatic SEO generation on title change
+  useEffect(() => {
+    if (debouncedTitle && debouncedTitle.length > 5) {
+      const updates: any = {};
+      if (!touchedFields.slug) updates.slug = generateSlug(debouncedTitle);
+      if (!touchedFields.seoTitle) updates.seoTitle = generateSeoTitle(debouncedTitle);
+      
+      if (Object.keys(updates).length > 0) {
+        setFormData((prev: any) => ({ ...prev, ...updates }));
+      }
+    }
+  }, [debouncedTitle]);
+
+  // Helper to ensure dates are in correct format for inputs and in ASCII
+  const formatForInput = (d: string | null | undefined, inputType: 'date' | 'datetime-local') => {
+    if (!d) return '';
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return '';
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    if (inputType === 'date') return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const sanitizeDateInput = (val: string | null) => {
+    if (!val) return null;
+    // Replace Arabic-Indic digits with Western digits
+    return val.replace(/[٠-٩]/g, (d) => (d.charCodeAt(0) - 1632).toString())
+              .replace(/[۰-۹]/g, (d) => (d.charCodeAt(0) - 1776).toString());
+  };
+  
+  const [previewMode, setPreviewMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [seoGenerated, setSeoGenerated] = useState(false);
+
   const handleAutoSeo = () => {
     const newDraft = { ...formData };
     let changed = false;
 
     if (!newDraft.slug && newDraft.title) {
-      newDraft.slug = slugify(newDraft.title);
+      newDraft.slug = generateSlug(newDraft.title);
       changed = true;
     }
 
@@ -2458,7 +2514,7 @@ export const AdminEditor = ({
     }
 
     if (!newDraft.seoDescription && newDraft.content) {
-      newDraft.seoDescription = generateExcerpt(newDraft.content, 160);
+      newDraft.seoDescription = generateMetaDescription(newDraft.content);
       changed = true;
     }
 
@@ -2505,7 +2561,7 @@ export const AdminEditor = ({
     // Auto-generate slug if missing
     const finalData = { ...formData };
     if (!finalData.slug && finalData.title) {
-      finalData.slug = `${slugify(finalData.title)}-${Math.random().toString(36).substring(2, 7)}`;
+      finalData.slug = `${generateSlug(finalData.title)}-${Math.random().toString(36).substring(2, 7)}`;
     }
 
     // Sécurité : Réinitialiser isSaving après 20s si la promesse ne revient pas
@@ -2640,7 +2696,10 @@ export const AdminEditor = ({
                 <input 
                   type="text" 
                   value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, title: e.target.value});
+                    setTouchedFields(prev => ({...prev, title: true}));
+                  }}
                   placeholder="Entrez un titre percutant..."
                   className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-5 text-2xl font-black outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
                 />
@@ -2662,6 +2721,7 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `**${selectedText}**` + text.substring(end);
                           setFormData({...formData, content: newText});
+                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Gras"
@@ -2679,6 +2739,7 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `*${selectedText}*` + text.substring(end);
                           setFormData({...formData, content: newText});
+                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Italique"
@@ -2696,6 +2757,7 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `[${selectedText}](url)` + text.substring(end);
                           setFormData({...formData, content: newText});
+                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Lien"
@@ -2713,6 +2775,7 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `\n- ${selectedText}` + text.substring(end);
                           setFormData({...formData, content: newText});
+                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Liste"
@@ -2731,6 +2794,7 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `### ${selectedText}` + text.substring(end);
                           setFormData({...formData, content: newText});
+                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="px-2 py-1 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500 text-[10px] font-black"
                         title="Titre"
@@ -2742,7 +2806,10 @@ export const AdminEditor = ({
                   <textarea 
                     name="content"
                     value={formData.content}
-                    onChange={(e) => setFormData({...formData, content: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, content: e.target.value});
+                      setTouchedFields(prev => ({...prev, content: true}));
+                    }}
                     placeholder="Saisissez votre texte ici. Utilisez les boutons ci-dessus pour la mise en forme..."
                     className="w-full bg-white border border-slate-100 rounded-3xl px-6 py-6 min-h-[500px] text-sm leading-relaxed outline-none focus:ring-2 focus:ring-primary/20 shadow-sm resize-y"
                   />
@@ -2815,7 +2882,10 @@ export const AdminEditor = ({
                   <input 
                     type="text" 
                     value={formData.slug}
-                    onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, slug: e.target.value});
+                      setTouchedFields(prev => ({...prev, slug: true}));
+                    }}
                     className="w-full bg-slate-50 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10"
                     placeholder="titre-de-l-element"
                   />
@@ -2972,7 +3042,10 @@ export const AdminEditor = ({
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Résumé (Extrait court)</label>
                   <textarea 
                     value={formData.excerpt}
-                    onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, excerpt: e.target.value});
+                      setTouchedFields(prev => ({...prev, excerpt: true}));
+                    }}
                     className="w-full bg-slate-50 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10 min-h-[100px] resize-none"
                     placeholder="Un court résumé qui s'affichera sur la page d'accueil..."
                   />
@@ -2987,7 +3060,10 @@ export const AdminEditor = ({
                   <input 
                     type="text" 
                     value={formData.seoTitle || ''}
-                    onChange={(e) => setFormData({...formData, seoTitle: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, seoTitle: e.target.value});
+                      setTouchedFields(prev => ({...prev, seoTitle: true}));
+                    }}
                     className="w-full bg-slate-50 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10"
                     placeholder="Titre pour les moteurs de recherche"
                   />
@@ -2996,7 +3072,10 @@ export const AdminEditor = ({
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Méta Description</label>
                   <textarea 
                     value={formData.seoDescription || ''}
-                    onChange={(e) => setFormData({...formData, seoDescription: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, seoDescription: e.target.value});
+                      setTouchedFields(prev => ({...prev, seoDescription: true}));
+                    }}
                     className="w-full bg-slate-50 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10 h-20"
                     placeholder="Méta description pour Google..."
                   />
