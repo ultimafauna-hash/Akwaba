@@ -71,6 +71,7 @@ import { MOCK_ARTICLES, MOCK_EVENTS, MOCK_AUTHORS } from './constants';
 import { Article, Comment, Event, SiteSettings, Subscriber, MediaAsset, Poll, Classified, LiveBlog, AppNotification, SupportMessage, Author, WebTV } from './types';
 import { cn, optimizeImage, getYoutubeId } from './lib/utils';
 import { AdminLogin, AdminDashboard, AdminEditor, ExportModal, PollEditor, LiveBlogEditor, WebTVEditor, ClassifiedEditor } from './components/Admin';
+import { PulseSidebar } from './components/PulseSidebar';
 import { AuthModal } from './components/AuthModal';
 import { AuthorProfile } from './components/AuthorProfile';
 import { AuthorsList } from './components/AuthorsList';
@@ -113,7 +114,6 @@ const Badge = ({ children, category, icon }: { children: React.ReactNode; catego
     'Urgent': 'bg-red-700 text-white animate-pulse',
     'Science': 'bg-purple-600 text-white',
     'Santé': 'bg-teal-500 text-white',
-    'Histoire': 'bg-stone-600 text-white',
     'Sport': 'bg-indigo-600 text-white',
   };
 
@@ -448,14 +448,8 @@ const UserProfileView = ({
   likedArticles, 
   savedArticles, 
   comments, 
-  followedAuthors,
-  followedCategories,
-  badges,
-  points,
   onArticleClick, 
   onLogout,
-  onFollowAuthor,
-  onFollowCategory,
   onAuthorClick,
   onUpgrade,
   categoryIcons
@@ -464,14 +458,8 @@ const UserProfileView = ({
   likedArticles: Article[], 
   savedArticles: Article[], 
   comments: Comment[],
-  followedAuthors: string[],
-  followedCategories: string[],
-  badges: string[],
-  points: number,
   onArticleClick: (a: Article) => void,
   onLogout: () => void,
-  onFollowAuthor: (name: string) => void,
-  onFollowCategory: (cat: string) => void,
   onAuthorClick?: (name: string) => void,
   onUpgrade: () => void,
   categoryIcons?: Record<string, string>
@@ -703,10 +691,9 @@ const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onE
       
       <div className="flex items-start gap-4 overflow-x-auto pb-6 no-scrollbar -mx-4 px-4 touch-pan-x snap-x">
         {events.map((event) => (
-          <motion.div 
+          <div 
             key={event.id}
             id={`event-card-home-${event.id}`}
-            whileHover={{ y: -5 }}
             onClick={() => onEventClick(event)}
             className="w-[200px] flex-shrink-0 bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer group snap-start"
           >
@@ -716,18 +703,18 @@ const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onE
                   id={`event-img-home-${event.id}`}
                   src={optimizeImage(event.image, 400, 'contain')} 
                   alt={event.title} 
-                  className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-auto" 
                   referrerPolicy="no-referrer"
                   loading="lazy"
                   decoding="async"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3">
-                <span className="bg-primary text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest mb-1 inline-block">
+              <div className="absolute inset-0 bg-black/40" />
+              <div className="absolute bottom-3 left-3 right-3 text-white">
+                <span className="bg-slate-900 text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest mb-1 inline-block">
                   {event.category}
                 </span>
-                <h3 className="text-white font-bold text-xs leading-tight line-clamp-1">{event.title}</h3>
+                <h3 className="font-bold text-xs leading-tight line-clamp-1">{event.title}</h3>
               </div>
             </div>
             <div className="p-3 space-y-2">
@@ -740,7 +727,7 @@ const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onE
                 {event.location}
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>
@@ -2059,17 +2046,6 @@ export default function App() {
   const [adminStats, setAdminStats] = useState<any>(null);
   const [adminActiveTab, setAdminActiveTab] = useState<string>('articles');
   
-  // New features state
-  const [showFilters, setShowFilters] = useState(false);
-  const [filterAuthor, setFilterAuthor] = useState('');
-  const [filterDate, setFilterDate] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [userBookmarkedArticles, setUserBookmarkedArticles] = useState<Set<string>>(new Set());
-  const [userFollowedAuthors, setUserFollowedAuthors] = useState<Set<string>>(new Set());
-  const [userFollowedCategories, setUserFollowedCategories] = useState<Set<string>>(new Set());
-  const [userBadges, setUserBadges] = useState<string[]>([]);
-  const [userPoints, setUserPoints] = useState(0);
   const [activeNotification, setActiveNotification] = useState<string | {message: string, type: 'success' | 'urgent' | 'info'} | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings>({
     aboutText: "Akwaba Info est votre source de référence pour l'actualité en Afrique et dans le monde.",
@@ -2082,7 +2058,7 @@ export default function App() {
     tiktokUrl: "https://tiktok.com",
     linkedinUrl: "https://linkedin.com",
     youtubeUrl: "https://youtube.com",
-    categories: ['À la une', 'Urgent', 'Politique', 'Économie', 'Science', 'Santé', 'Culture', 'Histoire', 'Sport', 'Afrique', 'Monde', 'Tech'],
+    categories: ['À la une', 'Urgent', 'Politique', 'Économie', 'Science', 'Santé', 'Culture', 'Sport', 'Afrique', 'Monde', 'Tech'],
     maintenanceMode: false,
     urgentBannerActive: false,
     urgentBannerText: "",
@@ -2302,8 +2278,6 @@ export default function App() {
       setActivePoll({ ...activePoll, options: updatedOptions });
       setHasVoted(true);
       setActiveNotification("Vote enregistré ! Merci.");
-      await SupabaseService.awardPoints(currentUser.uid, 10);
-      setUserPoints(prev => prev + 10);
     } catch (error) {
       console.error("Poll vote error:", error);
     }
@@ -2324,6 +2298,29 @@ export default function App() {
     const saved = localStorage.getItem('akwaba_user_likes');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+
+  const [userBookmarkedArticles, setUserBookmarkedArticles] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('akwaba_user_bookmarks');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  const [userFollowedAuthors, setUserFollowedAuthors] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('akwaba_user_followed_authors');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  const [userFollowedCategories, setUserFollowedCategories] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('akwaba_user_followed_categories');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  const [userPoints, setUserPoints] = useState(0);
+  const [userBadges, setUserBadges] = useState<string[]>([]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterAuthor, setFilterAuthor] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [replyingTo, setReplyingTo] = useState<{ commentId: string, username: string } | null>(null);
@@ -2370,19 +2367,25 @@ export default function App() {
           if (profile) {
             const isActuallyPremium = await SupabaseService.checkPremiumStatus(user.uid);
             
-            if (profile.likedArticles) setUserLikedArticles(new Set(profile.likedArticles));
-            if (profile.bookmarkedArticles) setUserBookmarkedArticles(new Set(profile.bookmarkedArticles));
-            if (profile.followedAuthors) setUserFollowedAuthors(new Set(profile.followedAuthors));
-            if (profile.followedCategories) setUserFollowedCategories(new Set(profile.followedCategories));
-            if (profile.points) setUserPoints(profile.points);
-            if (profile.badges) setUserBadges(profile.badges);
-            
             setCurrentUser(prev => ({ 
               ...prev, 
               isPremium: isActuallyPremium,
               premiumUntil: profile.premiumUntil,
-              paymentMethod: profile.paymentMethod
+              paymentMethod: profile.paymentMethod,
+              points: profile.points || 0,
+              badges: profile.badges || [],
+              history: profile.history || [],
+              likedArticles: profile.likedArticles || [],
+              bookmarkedArticles: profile.bookmarkedArticles || [],
+              followedAuthors: profile.followedAuthors || [],
+              followedCategories: profile.followedCategories || []
             }));
+
+            setUserPoints(profile.points || 0);
+            setUserBadges(profile.badges || []);
+            setUserBookmarkedArticles(new Set(profile.bookmarkedArticles || []));
+            setUserFollowedAuthors(new Set(profile.followedAuthors || []));
+            setUserFollowedCategories(new Set(profile.followedCategories || []));
           }
         } catch (e) {
           console.error("Profile sync error:", e);
@@ -2927,11 +2930,75 @@ export default function App() {
 
     if (isBookmarked) {
       setActiveNotification("Article enregistré dans vos favoris !");
-      await SupabaseService.awardPoints(currentUser.uid, 5);
-      setUserPoints(prev => prev + 5);
+      awardPoints(10);
     }
     } catch (error) {
       console.error("Bookmark article error:", error);
+    }
+  };
+
+  const handleFollowAuthor = async (authorName: string) => {
+    if (!currentUser) {
+      handleUserLogin();
+      return;
+    }
+
+    const isFollowing = !userFollowedAuthors.has(authorName);
+    try {
+      await SupabaseService.followAuthor(authorName, currentUser.uid, isFollowing);
+      setUserFollowedAuthors(prev => {
+        const next = new Set(prev);
+        if (isFollowing) next.add(authorName);
+        else next.delete(authorName);
+        return next;
+      });
+      if (isFollowing) awardPoints(15);
+    } catch (error) {
+      console.error("Follow author error:", error);
+    }
+  };
+
+  const handleFollowCategory = async (category: string) => {
+    if (!currentUser) {
+      handleUserLogin();
+      return;
+    }
+
+    const isFollowing = !userFollowedCategories.has(category);
+    try {
+      await SupabaseService.followCategory(category, currentUser.uid, isFollowing);
+      setUserFollowedCategories(prev => {
+        const next = new Set(prev);
+        if (isFollowing) next.add(category);
+        else next.delete(category);
+        return next;
+      });
+      if (isFollowing) awardPoints(10);
+    } catch (error) {
+      console.error("Follow category error:", error);
+    }
+  };
+
+  const awardPoints = async (amount: number) => {
+    if (!currentUser) return;
+    try {
+      const newPoints = userPoints + amount;
+      await SupabaseService.updateUserPoints(currentUser.uid, newPoints);
+      setUserPoints(newPoints);
+      
+      // Check for badges
+      const newBadges = [...userBadges];
+      if (newPoints >= 100 && !newBadges.includes('Explorateur')) newBadges.push('Explorateur');
+      if (newPoints >= 500 && !newBadges.includes('Passionné')) newBadges.push('Passionné');
+      if (newPoints >= 1000 && !newBadges.includes('Ambassadeur')) newBadges.push('Ambassadeur');
+      
+      if (newBadges.length > userBadges.length) {
+        await SupabaseService.updateUserBadges(currentUser.uid, newBadges);
+        setUserBadges(newBadges);
+        setActiveNotification({ message: "Nouveau badge débloqué !", type: 'success' });
+      }
+    } catch (error) {
+      console.error("Award points error:", error);
     }
   };
 
@@ -3007,10 +3074,6 @@ export default function App() {
       setNewCommentText('');
       setReplyingTo(null);
       setActiveNotification("Votre message a été publié !");
-      if (currentUser) {
-        await SupabaseService.awardPoints(currentUser.uid, 10);
-        setUserPoints(prev => prev + 10);
-      }
     } catch (error) {
       console.error("Error adding comment:", error);
       setActiveNotification("Erreur lors de la publication.");
@@ -3042,8 +3105,6 @@ export default function App() {
 
       if (isLiked) {
         setActiveNotification("Vous avez aimé cet article !");
-        await SupabaseService.awardPoints(currentUser.uid, 5);
-        setUserPoints(prev => prev + 5);
       }
     } catch (error) {
       console.error("Like article error:", error);
@@ -3108,46 +3169,6 @@ export default function App() {
     }
   };
 
-  const handleFollowAuthor = async (authorName: string) => {
-    if (!currentUser) {
-      handleUserLogin();
-      return;
-    }
-    const isFollowing = !userFollowedAuthors.has(authorName);
-    try {
-      await SupabaseService.followAuthor(authorName, currentUser.uid, isFollowing);
-      setUserFollowedAuthors(prev => {
-        const next = new Set(prev);
-        if (isFollowing) next.add(authorName);
-        else next.delete(authorName);
-        return next;
-      });
-      setActiveNotification(isFollowing ? `Vous suivez maintenant ${authorName}` : `Vous ne suivez plus ${authorName}`);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleFollowCategory = async (category: string) => {
-    if (!currentUser) {
-      handleUserLogin();
-      return;
-    }
-    const isFollowing = !userFollowedCategories.has(category);
-    try {
-      await SupabaseService.followCategory(category, currentUser.uid, isFollowing);
-      setUserFollowedCategories(prev => {
-        const next = new Set(prev);
-        if (isFollowing) next.add(category);
-        else next.delete(category);
-        return next;
-      });
-      setActiveNotification(isFollowing ? `Vous suivez maintenant la catégorie ${category}` : `Vous ne suivez plus ${category}`);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const toggleDarkMode = () => {
     const next = !isDarkMode;
     setIsDarkMode(next);
@@ -3193,24 +3214,11 @@ export default function App() {
     if (!notifConsent) {
       const timer = setTimeout(() => {}, 5000);
       return () => clearTimeout(timer);
-    } else if (notifConsent === 'accepted') {
-      setNotificationsEnabled(true);
     }
   }, []);
 
-  // Simulate an urgent notification after 10 seconds
-  useEffect(() => {
-    if (notificationsEnabled) {
-      const timer = setTimeout(() => {
-        setActiveNotification("URGENT : Coupure d'électricité majeure annoncée à Abidjan pour demain.");
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [notificationsEnabled]);
-
   const handleNotificationConsent = (accepted: boolean) => {
     localStorage.setItem('notification-consent', accepted ? 'accepted' : 'declined');
-    setNotificationsEnabled(accepted);
   };
 
   const handleCookieConsent = (accepted: boolean) => {
@@ -3242,7 +3250,7 @@ export default function App() {
     };
   }, []);
 
-   const categories = siteSettings.categories || ['À la une', 'Politique', 'Économie', 'Science', 'Santé', 'Culture', 'Histoire', 'Sport'];
+   const categories = siteSettings.categories || ['À la une', 'Politique', 'Économie', 'Science', 'Santé', 'Culture', 'Sport'];
  
   const visibleArticles = isAdminAuthenticated 
     ? adminArticles 
@@ -3333,7 +3341,7 @@ export default function App() {
 
   useEffect(() => {
     setVisibleSearchCount(4);
-  }, [searchQuery, filterAuthor, filterDate, filterCategory]);
+  }, [searchQuery]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -3359,11 +3367,7 @@ export default function App() {
     const contentMatch = (a.content || '').toLowerCase().includes(query);
     const tagsMatch = a.tags?.some(t => t.toLowerCase().includes(query));
     
-    const matchesQuery = titleMatch || excerptMatch || contentMatch || tagsMatch;
-    const matchesAuthor = !filterAuthor || a.author.toLowerCase().includes(filterAuthor.toLowerCase());
-    const matchesCategory = !filterCategory || a.category === filterCategory;
-    const matchesDate = !filterDate || a.date.startsWith(filterDate);
-    return matchesQuery && matchesAuthor && matchesCategory && matchesDate;
+    return titleMatch || excerptMatch || contentMatch || tagsMatch;
   });
 
   const displayedSearchResults = searchResults.slice(0, visibleSearchCount);
@@ -3377,18 +3381,6 @@ export default function App() {
     // Increment views
     try {
       await SupabaseService.incrementArticleViews(article.id);
-      
-      // Award 2 points for reading if logged in
-      if (currentUser) {
-        await SupabaseService.awardPoints(currentUser.uid, 2);
-        
-        // Add to history
-        const updatedHistory = [{ articleId: article.id, date: new Date().toISOString() }, ...(currentUser as any).history || []].slice(0, 50);
-        await SupabaseService.updateUserProfile(currentUser.uid, { 
-          ...currentUser, 
-          history: updatedHistory 
-        } as any);
-      }
     } catch (e) {
       console.warn("View counter error", e);
     }
@@ -3543,9 +3535,10 @@ export default function App() {
       )}
 
       <div className={cn(
-        "min-h-screen transition-colors duration-300 african-pattern pb-16 lg:pb-0",
+        "min-h-screen transition-colors duration-300 african-pattern pb-16 lg:pb-0 relative",
         isDarkMode ? "bg-slate-950 text-white" : "bg-[#F5F1EB] text-slate-900"
       )}>
+        <PulseSidebar />
       <FlashInfo articles={FLASH_NEWS} />
       
       {/* Active Notification Toast */}
@@ -4038,8 +4031,8 @@ export default function App() {
                   <HeroSlideshow 
                     articles={visibleArticles.slice(0, 3)} 
                     onArticleClick={handleArticleClick} 
-                    onBookmark={handleBookmarkArticle}
-                    bookmarkedIds={userBookmarkedArticles}
+                    onBookmark={() => {}}
+                    bookmarkedIds={new Set()}
                     onAuthorClick={handleAuthorClick}
                     categoryIcons={siteSettings?.categories_icons}
                   />
@@ -4049,8 +4042,8 @@ export default function App() {
                   <TrendingSection 
                     articles={trendingArticles}
                     onArticleClick={handleArticleClick}
-                    onBookmark={handleBookmarkArticle}
-                    bookmarkedIds={userBookmarkedArticles}
+                    onBookmark={() => {}}
+                    bookmarkedIds={new Set()}
                     onAuthorClick={handleAuthorClick}
                     categoryIcons={siteSettings?.categories_icons}
                   />
@@ -4207,8 +4200,8 @@ export default function App() {
               articles={adminArticles.filter(a => a.author === selectedAuthor.name)} 
               onBack={goHome} 
               onArticleClick={handleArticleClick}
-              isFollowing={userFollowedAuthors.has(selectedAuthor.name)}
-              onFollow={handleFollowAuthor}
+              isFollowing={false}
+              onFollow={() => {}}
             />
           ) : currentView === 'article' && selectedArticle ? (
             <motion.div 
@@ -4402,7 +4395,7 @@ export default function App() {
 
                     <RecommendedForYou 
                       articles={adminArticles} 
-                      history={(currentUser as any)?.history || []} 
+                      history={[]} 
                       onArticleClick={handleArticleClick} 
                       onAuthorClick={handleAuthorClick}
                     />
@@ -4503,16 +4496,11 @@ export default function App() {
                           <Share2 size={20} />
                         </button>
                         <button 
-                          onClick={() => handleBookmarkArticle(selectedArticle.id)}
-                          className={cn(
-                            "p-3 rounded-full transition-all",
-                            userBookmarkedArticles.has(selectedArticle.id) 
-                              ? "bg-primary text-white" 
-                              : "bg-slate-100 text-slate-600 hover:bg-primary hover:text-white"
-                          )}
-                          title={userBookmarkedArticles.has(selectedArticle.id) ? "Retirer des favoris" : "Enregistrer"}
+                          onClick={() => {}}
+                          className="p-3 bg-slate-100 rounded-full text-slate-600 hover:bg-primary hover:text-white transition-all"
+                          title="Enregistrer"
                         >
-                          <Bookmark size={20} fill={userBookmarkedArticles.has(selectedArticle.id) ? "currentColor" : "none"} />
+                          <Bookmark size={20} fill="none" />
                         </button>
                       </div>
                     </div>
@@ -4754,84 +4742,97 @@ export default function App() {
                 <ArrowLeft size={14} /> Retour à l'accueil
               </button>
               
-              <div className="space-y-4">
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex items-center gap-4">
-                  <Search size={28} className="text-primary" />
-                  <input 
-                    autoFocus
-                    type="text" 
-                    placeholder="Rechercher un article, un sujet..." 
-                    className="flex-1 text-xl font-medium outline-none text-slate-900"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <button 
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={cn(
-                      "p-2 rounded-xl transition-colors",
-                      showFilters ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
-                    )}
-                  >
-                    <Filter size={20} />
-                  </button>
-                  {searchQuery && <button onClick={() => setSearchQuery('')} className="p-2 bg-slate-100 rounded-full text-slate-900"><X size={20} /></button>}
-                </div>
-
-                <AnimatePresence>
-                  {showFilters && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
+                <div className="flex flex-col gap-4">
+                  <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex items-center gap-4">
+                    <Search size={28} className="text-primary" />
+                    <input 
+                      autoFocus
+                      type="text" 
+                      placeholder="Rechercher un article, un sujet..." 
+                      className="flex-1 text-xl font-medium outline-none text-slate-900"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button 
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={cn(
+                        "p-3 rounded-2xl transition-all flex items-center gap-2",
+                        showFilters ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      )}
                     >
-                      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-400">Auteur</label>
-                          <div className="relative">
-                            <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <ListIcon size={20} />
+                      <span className="hidden md:inline font-bold text-xs uppercase tracking-widest">Filtres</span>
+                    </button>
+                    {searchQuery && <button onClick={() => setSearchQuery('')} className="p-2 bg-slate-100 rounded-full text-slate-900"><X size={20} /></button>}
+                  </div>
+
+                  <AnimatePresence>
+                    {showFilters && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100 overflow-hidden"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400">Par Catégorie</label>
+                            <select 
+                              value={filterCategory}
+                              onChange={(e) => setFilterCategory(e.target.value)}
+                              className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-100 focus:ring-primary/20"
+                            >
+                              <option value="">Toutes les catégories</option>
+                              {siteSettings?.categories?.map(c => (
+                                <option key={c} value={c}>{c}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400">Par Auteur</label>
                             <input 
-                              type="text" 
+                              type="text"
                               placeholder="Nom de l'auteur..."
-                              className="w-full bg-slate-50 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-slate-900"
                               value={filterAuthor}
                               onChange={(e) => setFilterAuthor(e.target.value)}
+                              className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-100 focus:ring-primary/20"
                             />
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-400">Date</label>
-                          <div className="relative">
-                            <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input 
-                              type="date" 
-                              className="w-full bg-slate-50 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-slate-900"
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-400">Période</label>
+                            <select 
                               value={filterDate}
                               onChange={(e) => setFilterDate(e.target.value)}
-                            />
+                              className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold outline-none ring-1 ring-slate-100 focus:ring-primary/20"
+                            >
+                              <option value="">Toutes les dates</option>
+                              <option value="today">Aujourd'hui</option>
+                              <option value="week">Cette semaine</option>
+                              <option value="month">Ce mois</option>
+                            </select>
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold uppercase text-slate-400">Catégorie</label>
-                          <select 
-                            className="w-full bg-slate-50 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 text-slate-900 appearance-none"
-                            value={filterCategory}
-                            onChange={(e) => setFilterCategory(e.target.value)}
-                          >
-                            <option value="">Toutes les catégories</option>
-                            {categories.map(cat => <option key={cat} value={cat}>{siteSettings?.categories_icons?.[cat] || '📰'} {cat}</option>)}
-                          </select>
+                        <div className="mt-6 pt-4 border-t border-slate-50 flex justify-end">
+                           <button 
+                             onClick={() => {
+                               setFilterCategory('');
+                               setFilterAuthor('');
+                               setFilterDate('');
+                             }}
+                             className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
+                           >
+                             Réinitialiser les filtres
+                           </button>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-              {searchQuery || filterAuthor || filterDate || filterCategory ? (
+              {searchQuery ? (
                 <div className="space-y-6">
                   <h3 className="font-black text-xl text-slate-900">
-                    {searchResults.length} {searchResults.length > 1 ? 'résultats' : 'résultat'} pour "{searchQuery || '...'}"
+                    {searchResults.length} {searchResults.length > 1 ? 'résultats' : 'résultat'} pour "{searchQuery}"
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {displayedSearchResults.map(article => (
@@ -4840,8 +4841,8 @@ export default function App() {
                         article={article} 
                         variant="vertical" 
                         onClick={() => handleArticleClick(article)}
-                        onBookmark={handleBookmarkArticle}
-                        isBookmarked={userBookmarkedArticles.has(article.id)}
+                        onBookmark={() => {}}
+                        isBookmarked={false}
                       />
                     ))}
                   </div>
@@ -4880,17 +4881,17 @@ export default function App() {
               user={currentUser}
               savedArticles={adminArticles.filter(a => userBookmarkedArticles.has(a.id))}
               likedArticles={adminArticles.filter(a => userLikedArticles.has(a.id))}
-              followedAuthors={Array.from(userFollowedAuthors)}
-              followedCategories={Array.from(userFollowedCategories)}
+              followedAuthors={userFollowedAuthors}
+              followedCategories={userFollowedCategories}
               badges={userBadges}
               points={userPoints}
               comments={Object.values(articleComments).flat().filter(c => c.userId === currentUser.uid)}
               onArticleClick={handleArticleClick}
               onLogout={handleUserLogout}
-              onFollowAuthor={handleFollowAuthor}
-              onFollowCategory={handleFollowCategory}
               onAuthorClick={handleAuthorClick}
               onUpgrade={() => setShowPremiumModal(true)}
+              onFollowAuthor={handleFollowAuthor}
+              onFollowCategory={handleFollowCategory}
               categoryIcons={siteSettings?.categories_icons}
             />
           ) : currentView === 'donate' ? (

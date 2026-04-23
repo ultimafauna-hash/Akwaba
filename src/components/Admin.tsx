@@ -69,7 +69,8 @@ import {
   Sparkles,
   Zap,
   Globe2,
-  Lock
+  Activity,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -85,17 +86,7 @@ import {
   LiveBlog, 
   LiveUpdate, 
   WebTV, 
-  Classified,
-  HistoryEvent,
-  MapEvent,
-  AkwabaVote,
-  DiasporaStory,
-  SuccessStory,
-  Podcast,
-  Quiz,
-  QuizQuestion,
-  QuizScore,
-  Challenge
+  Classified
 } from '../types';
 import { cn, optimizeImage } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
@@ -103,6 +94,10 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { SupabaseService } from '../lib/supabase';
 import { MOCK_ARTICLES, MOCK_EVENTS } from '../constants';
+import { HistoryManager } from './HistoryManager';
+import { MapManager } from './MapManager';
+import { QuizManager } from './QuizManager';
+import { StoryManager } from './StoryManager';
 
 // Hook debounce
 function useDebounce<T>(value: T, delay: number): T {
@@ -395,211 +390,6 @@ export const PollEditor = ({ poll, onSave, onCancel }: { poll: Partial<Poll>, on
   );
 };
 
-const AdminSidebar = ({ 
-  activeTab, 
-  setActiveTab, 
-  isSidebarOpen, 
-  setIsSidebarOpen,
-  onLogout 
-}: { 
-  activeTab: string, 
-  setActiveTab: (t: any) => void, 
-  isSidebarOpen: boolean,
-  setIsSidebarOpen: (b: boolean) => void,
-  onLogout: () => void
-}) => {
-  const menuItems = [
-    { id: 'articles', label: 'Articles', icon: FileText },
-    { id: 'events', label: 'Événements', icon: Calendar },
-    { id: 'polls', label: 'Sondages', icon: BarChart3 },
-    { id: 'live-blog', label: 'Direct', icon: Zap },
-    { id: 'web-tv', label: 'Web TV', icon: Tv },
-    { id: 'classifieds', label: 'Annonces', icon: Megaphone },
-    { id: 'comments', label: 'Commentaires', icon: MessageSquare },
-    { id: 'media', label: 'Médias', icon: ImagePlus },
-    { id: 'subscribers', label: 'Abonnés', icon: Users },
-    { id: 'history', label: 'Histoire', icon: History },
-    { id: 'map', label: 'Carte', icon: MapIcon },
-    { id: 'meter', label: 'Meter', icon: TrendingUp },
-    { id: 'diaspora', label: 'Diaspora', icon: Globe2 },
-    { id: 'success', label: 'Afrique Gagne', icon: Trophy },
-    { id: 'podcasts', label: 'Radio', icon: Radio },
-    { id: 'quiz', label: 'Quiz', icon: HelpCircle },
-    { id: 'challenges', label: 'Défis', icon: Dumbbell },
-    { id: 'analytics', label: 'Statistiques', icon: Activity },
-    { id: 'payments', label: 'Paiements', icon: CreditCard },
-    { id: 'settings', label: 'Paramètres', icon: Settings },
-  ] as const;
-
-  return (
-    <>
-      {/* Mobile Backdrop */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
-          />
-        )}
-      </AnimatePresence>
-
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-[260px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform lg:translate-x-0",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        {/* Sidebar Header */}
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <Zap size={20} fill="currentColor" />
-            </div>
-            <div>
-              <h1 className="font-black text-lg tracking-tight dark:text-white">Admin</h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Akwaba Info</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            className="p-2 lg:hidden text-slate-400 hover:text-slate-900 dark:hover:text-white"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Menu Items */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
-          {menuItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                if (window.innerWidth < 1024) setIsSidebarOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black transition-all group",
-                activeTab === item.id 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                  : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
-              )}
-            >
-              <item.icon size={18} className={cn(
-                "transition-transform group-hover:scale-110",
-                activeTab === item.id ? "text-white" : "text-slate-400 group-hover:text-primary"
-              )} />
-              {item.label}
-              {activeTab === item.id && (
-                <motion.div 
-                  layoutId="active-nav"
-                  className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-sm"
-                />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-          <button 
-            onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group"
-          >
-            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-            Déconnexion
-          </button>
-        </div>
-      </aside>
-    </>
-  );
-};
-
-const AdminHeader = ({ 
-  title, 
-  searchTerm, 
-  setSearchTerm, 
-  onNew, 
-  onExport, 
-  darkMode, 
-  setDarkMode,
-  setIsSidebarOpen,
-  activeTab
-}: { 
-  title: string, 
-  searchTerm: string, 
-  setSearchTerm: (s: string) => void,
-  onNew?: () => void,
-  onExport: () => void,
-  darkMode: boolean,
-  setDarkMode: (b: boolean) => void,
-  setIsSidebarOpen: (b: boolean) => void,
-  activeTab: string
-}) => {
-  return (
-    <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
-      <div className="flex items-center gap-4">
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 -ml-2 lg:hidden text-slate-500"
-        >
-          <Menu size={24} />
-        </button>
-        <h2 className="text-xl font-black tracking-tight dark:text-white hidden sm:block">{title}</h2>
-      </div>
-
-      <div className="flex-1 max-w-xl mx-8 hidden md:block">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Rechercher..."
-            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 dark:text-white transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button 
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-500 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-        
-        <button 
-          className="p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-500 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all relative"
-        >
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900" />
-        </button>
-
-        <div className="h-8 w-[1px] bg-slate-200 dark:border-slate-800 mx-2" />
-
-        <button 
-          onClick={onExport}
-          className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
-        >
-          <Copy size={14} /> EXPORT
-        </button>
-
-        {onNew && (
-          <button 
-            onClick={onNew}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-black rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20"
-          >
-            <Plus size={14} /> NOUVEAU
-          </button>
-        )}
-      </div>
-    </header>
-  );
-};
-
-const Activity = ({ size, className }: { size?: number, className?: string }) => <BarChart3 size={size} className={className} />;
-
 export const AdminDashboard = ({ 
   articles, 
   events,
@@ -887,123 +677,316 @@ export const AdminDashboard = ({
   const filteredMedia = mediaLibrary.filter(m => m.url.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors">
-      <AdminSidebar 
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        isSidebarOpen={isSidebarOpen}
-        setIsSidebarOpen={setIsSidebarOpen}
-        onLogout={onLogout}
-      />
+    <div className={cn("flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden", darkMode && "dark")}>
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="flex-1 lg:ml-[260px] flex flex-col min-h-screen">
-        <AdminHeader 
-          activeTab={activeTab} 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-          darkMode={darkMode} 
-          setDarkMode={setDarkMode}
-          onNew={
-            (activeTab === 'articles' || activeTab === 'events' || activeTab === 'polls' || activeTab === 'live-blog' || activeTab === 'web-tv' || activeTab === 'classifieds') 
-            ? () => {
-                if (activeTab === 'articles') onCreateArticle();
-                else if (activeTab === 'events') onCreateEvent();
-                else if (activeTab === 'polls') onCreatePoll();
-                else if (activeTab === 'live-blog') onCreateLiveBlog();
-                else if (activeTab === 'web-tv') onCreateWebTV();
-                else if (activeTab === 'classifieds') onCreateClassified();
-              }
-            : undefined
-          }
-          onExport={onGenerateCode}
-          setIsSidebarOpen={setIsSidebarOpen}
-        />
+      {/* Sidebar */}
+      <aside className={cn(
+        "fixed inset-y-0 left-0 z-50 w-[280px] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="p-8 shrink-0">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
+               <Zap size={24} fill="currentColor" />
+             </div>
+             <div>
+               <h1 className="text-xl font-black italic tracking-tighter dark:text-white">AKWABA <span className="text-primary">ADMIN</span></h1>
+               <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em]">Management Suite v2</p>
+             </div>
+          </div>
+        </div>
 
-        <main className="flex-1 p-4 lg:p-8 animate-in fade-in duration-500">
-          {activeTab === 'dashboard' ? (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { label: 'Total Articles', value: articles.length, icon: FileText, color: 'text-primary', bg: 'bg-primary/5' },
-                  { label: 'Vues Totales', value: (stats?.totalViews ?? articles.reduce((acc, a) => acc + (a.views || 0), 0)).toLocaleString(), icon: Eye, color: 'text-indigo-500', bg: 'bg-indigo-500/5' },
-                  { label: 'Abonnés', value: (stats?.totalSubscribers ?? subscribers.length).toLocaleString(), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
-                  { label: 'Revenu Mensuel', value: `${(stats?.totalRevenue || 0).toLocaleString()} XOF`, icon: CreditCard, color: 'text-amber-500', bg: 'bg-amber-500/5' }
-                ].map((stat, i) => (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    key={stat.label} 
-                    className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[35px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={cn("p-4 rounded-2xl", stat.bg)}>
-                        <stat.icon className={stat.color} size={28} />
+        <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 no-scrollbar">
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+            { id: 'articles', label: 'Articles', icon: FileText },
+            { id: 'events', label: 'Événements', icon: Calendar },
+            { id: 'history', label: 'Ce jour Histoire', icon: History },
+            { id: 'map', label: 'Carte Akwaba', icon: MapIcon },
+            { id: 'quiz', label: 'Quiz & Défis', icon: Trophy },
+            { id: 'diaspora', label: 'Diaspora Stories', icon: Globe },
+            { id: 'polls', label: 'Sondages', icon: BarChart3 },
+            { id: 'live-blog', label: 'Direct', icon: Zap },
+            { id: 'web-tv', label: 'Web TV', icon: Tv },
+            { id: 'classifieds', label: 'Annonces', icon: Megaphone },
+            { id: 'comments', label: 'Commentaires', icon: MessageSquare },
+            { id: 'media', label: 'Médias', icon: ImagePlus },
+            { id: 'subscribers', label: 'Abonnés', icon: Users },
+            { id: 'analytics', label: 'Statistiques', icon: Activity },
+            { id: 'payments', label: 'Paiements', icon: CreditCard },
+            { id: 'settings', label: 'Paramètres', icon: Settings },
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id);
+                setIsSidebarOpen(false);
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all",
+                activeTab === item.id 
+                  ? "bg-primary/5 text-primary" 
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+              )}
+            >
+              <item.icon size={18} className={activeTab === item.id ? "text-primary" : "text-slate-400"} />
+              {item.label}
+              {activeTab === item.id && (
+                <motion.div layoutId="active-pill" className="ml-auto w-1 h-5 bg-primary rounded-full" />
+              )}
+            </button>
+          ))}
+        </nav>
+
+        <div className="p-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+           <button 
+             onClick={() => setDarkMode(!darkMode)}
+             className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+           >
+             <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+               {darkMode ? <Sun size={14} /> : <Moon size={14} />}
+               {darkMode ? 'Mode Clair' : 'Mode Sombre'}
+             </span>
+             <div className={cn(
+               "w-8 h-4 rounded-full relative transition-colors",
+               darkMode ? "bg-primary" : "bg-slate-300"
+             )}>
+               <div className={cn(
+                 "absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform",
+                 darkMode ? "translate-x-4" : "translate-x-1"
+               )} />
+             </div>
+           </button>
+           <button 
+             onClick={onLogout}
+             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+           >
+             <LogOut size={18} />
+             Déconnexion
+           </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-8 shrink-0 relative z-10 shadow-sm">
+          <div className="flex items-center gap-4">
+             <button 
+               onClick={() => setIsSidebarOpen(true)}
+               className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+             >
+               <Menu size={20} />
+             </button>
+             <div className="hidden sm:block">
+               <h2 className="text-lg font-black dark:text-white capitalize">{activeTab.replace('-', ' ')}</h2>
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Akwaba Info Control Panel</p>
+             </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+             <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                <Search size={16} className="text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Rechercher..."
+                  className="bg-transparent border-none outline-none text-xs font-medium w-40 dark:text-white"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+             </div>
+             <button 
+                onClick={onGenerateCode}
+                className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative"
+                title="Exporter les données"
+              >
+                <ArrowRight size={20} className="transform rotate-180" />
+              </button>
+             <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative">
+                <Bell size={20} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-slate-900" />
+             </button>
+             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary border-2 border-primary/10">
+                AD
+             </div>
+          </div>
+        </header>
+
+        {/* Content Body */}
+        <main className="flex-1 overflow-y-auto p-8 no-scrollbar bg-slate-50 dark:bg-slate-950">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="max-w-[1600px] mx-auto"
+            >
+              {(activeTab === 'articles' || activeTab === 'events' || activeTab === 'polls' || activeTab === 'live-blog' || activeTab === 'web-tv' || activeTab === 'classifieds') && (
+                 <div className="mb-8 flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-[30px] border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="relative group max-w-md w-full">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input 
+                          type="text" 
+                          placeholder="Filtre rapide..."
+                          className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-[18px] pl-14 pr-6 py-3 text-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all dark:text-white"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                       </div>
-                      <TrendingUp className="text-slate-200 dark:text-slate-700" size={24} />
                     </div>
-                    <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest">{stat.label}</p>
-                    <h3 className="text-3xl font-black mt-2 dark:text-white italic">{stat.value}</h3>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Charts & Recent items could go here */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl">
-                   <h3 className="text-xl font-black mb-6 dark:text-white">Articles Récents</h3>
-                   <div className="space-y-4">
-                     {articles.slice(0, 5).map(article => (
-                       <div key={article.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors group cursor-pointer" onClick={() => onEditArticle(article)}>
-                         <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                           {article.image && <img src={article.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />}
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <h4 className="font-bold text-slate-900 dark:text-white truncate">{article.title}</h4>
-                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{article.category} • {article.date}</p>
-                         </div>
-                         <div className="text-slate-400 group-hover:text-primary transition-colors">
-                           <ArrowRight size={18} />
-                         </div>
-                       </div>
-                     ))}
-                   </div>
+                    <button 
+                      onClick={() => {
+                        if (activeTab === 'articles') onCreateArticle();
+                        else if (activeTab === 'events') onCreateEvent();
+                        else if (activeTab === 'polls') onCreatePoll();
+                        else if (activeTab === 'live-blog') onCreateLiveBlog();
+                        else if (activeTab === 'web-tv') onCreateWebTV();
+                        else if (activeTab === 'classifieds') onCreateClassified();
+                      }}
+                      className="flex items-center gap-2 px-8 py-3 bg-primary text-white font-black rounded-[18px] text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20"
+                    >
+                      <Plus size={16} /> NOUVEU {activeTab.slice(0, -1)}
+                    </button>
                  </div>
-
-                 <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
-                   <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                     <Activity size={40} />
-                   </div>
-                   <div>
-                     <h3 className="text-xl font-black dark:text-white">Performance du Site</h3>
-                     <p className="text-sm text-slate-500 dark:text-slate-400">Le trafic est en hausse de 12% par rapport à la semaine dernière.</p>
-                   </div>
-                   <button 
-                     onClick={() => setActiveTab('analytics')}
-                     className="px-6 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white font-black rounded-xl text-xs uppercase tracking-widest"
-                   >
-                     Voir Rapport Complet
-                   </button>
-                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="h-full space-y-8">
-              {activeTab !== 'settings' && activeTab !== 'analytics' && activeTab !== 'support' && activeTab !== 'payments' && (
-                <div className="relative group">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={24} />
-                  <input 
-                    type="text" 
-                    placeholder={`Rechercher dans ${activeTab}...`}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[30px] pl-16 pr-8 py-5 text-lg shadow-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all dark:text-white"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
               )}
 
-          {activeTab === 'settings' ? (
-            <motion.div 
+              {activeTab === 'dashboard' && (
+                  <div className="space-y-8 pb-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {[
+                        { label: 'Total Articles', value: articles.length, icon: FileText, color: 'text-primary', bg: 'bg-primary/5' },
+                        { label: 'Vues Totales', value: (stats?.totalViews ?? articles.reduce((acc, a) => acc + (a.views || 0), 0)).toLocaleString(), icon: Eye, color: 'text-indigo-500', bg: 'bg-indigo-500/5' },
+                        { label: 'Abonnés', value: (stats?.totalSubscribers ?? subscribers.length).toLocaleString(), icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-500/5' },
+                        { label: 'Revenu Mensuel', value: `${(stats?.totalRevenue || 0).toLocaleString()} XOF`, icon: CreditCard, color: 'text-amber-500', bg: 'bg-amber-500/5' }
+                      ].map((stat, i) => (
+                        <motion.div 
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          key={stat.label} 
+                          className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[35px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <div className={cn("p-4 rounded-2xl", stat.bg)}>
+                              <stat.icon className={stat.color} size={28} />
+                            </div>
+                            <TrendingUp className="text-slate-200 dark:text-slate-700" size={24} />
+                          </div>
+                          <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest">{stat.label}</p>
+                          <h3 className="text-3xl font-black mt-2 dark:text-white italic">{stat.value}</h3>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                       <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden">
+                         <div className="flex items-center justify-between mb-8">
+                            <h3 className="text-xl font-black dark:text-white">Articles Récents</h3>
+                            <button onClick={() => setActiveTab('articles')} className="text-[10px] font-black uppercase text-primary tracking-widest">Voir tout</button>
+                         </div>
+                         <div className="overflow-x-auto">
+                            <table className="w-full">
+                               <thead>
+                                  <tr className="text-left border-b border-slate-50 dark:border-slate-800">
+                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Article</th>
+                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Catégorie</th>
+                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Vues</th>
+                                     <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Action</th>
+                                  </tr>
+                               </thead>
+                               <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                                  {articles.slice(0, 5).map(article => (
+                                    <tr key={article.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                      <td className="py-4">
+                                        <div className="flex items-center gap-4">
+                                           <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+                                              {article.image && <img src={article.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />}
+                                           </div>
+                                           <div className="min-w-0">
+                                              <p className="font-bold text-slate-900 dark:text-white truncate max-w-[200px]">{article.title}</p>
+                                              <p className="text-[10px] text-slate-400 font-bold uppercase">{article.date}</p>
+                                           </div>
+                                        </div>
+                                      </td>
+                                      <td className="py-4">
+                                         <span className="px-3 py-1 bg-primary/5 text-primary rounded-lg text-[10px] font-black uppercase">{article.category}</span>
+                                      </td>
+                                      <td className="py-4">
+                                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400 text-xs font-bold">
+                                            <Eye size={14} /> {article.views || 0}
+                                         </div>
+                                      </td>
+                                      <td className="py-4 text-right">
+                                         <button 
+                                           onClick={() => onEditArticle(article)}
+                                           className="p-2 text-slate-400 hover:text-primary transition-colors"
+                                         >
+                                           <Edit3 size={18} />
+                                         </button>
+                                      </td>
+                                    </tr>
+                                  ))}
+                               </tbody>
+                            </table>
+                         </div>
+                       </div>
+
+                       <div className="space-y-8">
+                         <div className="bg-slate-900 p-8 rounded-[40px] shadow-xl text-white relative overflow-hidden group">
+                           <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all" />
+                           <h3 className="text-xl font-black mb-2 italic">Akwaba Plus</h3>
+                           <p className="text-slate-400 text-xs leading-relaxed mb-6 font-bold uppercase tracking-widest">Optimisez votre gestion</p>
+                           <ul className="space-y-3 mb-8">
+                              {['SEO Automatique', 'Notification Push', 'Analytics Avancés'].map(f => (
+                                <li key={f} className="flex items-center gap-2 text-xs font-bold">
+                                   <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                                   {f}
+                                </li>
+                              ))}
+                           </ul>
+                           <button className="w-full py-4 bg-primary text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                              Découvrir les outils
+                           </button>
+                         </div>
+
+                         <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
+                           <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                             <Activity size={32} />
+                           </div>
+                           <div>
+                             <h4 className="text-lg font-black dark:text-white italic">Système OK</h4>
+                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Tout fonctionne normalement</p>
+                           </div>
+                         </div>
+                       </div>
+                    </div>
+                  </div>
+              )}
+
+              <div className="h-full pb-20">
+                 {activeTab === 'history' && <HistoryManager />}
+                 {activeTab === 'map' && <MapManager />}
+                 {activeTab === 'quiz' && <QuizManager />}
+                 {activeTab === 'diaspora' && <StoryManager />}
+              </div>
+
+              {activeTab === 'settings' && (
+                <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-6 pb-20"
@@ -1342,7 +1325,9 @@ export const AdminDashboard = ({
                 </button>
               </div>
             </motion.div>
-          ) : activeTab === 'payments' ? (
+          )}
+
+          {activeTab === 'payments' && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1586,7 +1571,9 @@ export const AdminDashboard = ({
                 </div>
               </div>
             </motion.div>
-          ) : activeTab === 'premium' ? (
+          )}
+
+          {activeTab === 'premium' && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1627,7 +1614,9 @@ export const AdminDashboard = ({
                 <TransactionsList onValidate={onValidateTransaction} />
               </div>
             </motion.div>
-          ) : activeTab === 'support' ? (
+          )}
+
+          {activeTab === 'support' && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1762,7 +1751,9 @@ export const AdminDashboard = ({
                 )}
               </div>
             </motion.div>
-          ) : activeTab === 'alerts' ? (
+          )}
+
+          {activeTab === 'alerts' && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1837,7 +1828,9 @@ export const AdminDashboard = ({
                 </ul>
               </div>
             </motion.div>
-          ) : activeTab === 'web-tv' ? (
+          )}
+
+          {activeTab === 'web-tv' && (
             <motion.div 
               key="web-tv"
               initial={{ opacity: 0, x: 20 }}
@@ -1910,7 +1903,9 @@ export const AdminDashboard = ({
                 )}
               </div>
             </motion.div>
-          ) : activeTab === 'analytics' ? (
+          )}
+
+          {activeTab === 'analytics' && (
             <motion.div 
               key="analytics"
               initial={{ opacity: 0, x: 20 }}
@@ -2026,7 +2021,9 @@ export const AdminDashboard = ({
                 </>
               )}
             </motion.div>
-          ) : activeTab === 'polls' ? (
+          )}
+
+          {activeTab === 'polls' && (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
                <div className="p-8 border-b border-slate-100 flex justify-between items-center">
                   <h3 className="font-black text-xl">Gestion des Sondages</h3>
@@ -2096,7 +2093,9 @@ export const AdminDashboard = ({
                   )}
                </div>
             </div>
-          ) : activeTab === 'subscribers' ? (
+          )}
+
+          {activeTab === 'subscribers' && (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
                <div className="p-8 border-b border-slate-100 flex justify-between items-center">
                   <h3 className="font-black text-xl">Liste des Abonnés Newsletter</h3>
@@ -2124,7 +2123,9 @@ export const AdminDashboard = ({
                   ))}
                </div>
             </div>
-          ) : activeTab === 'media' ? (
+          )}
+
+          {activeTab === 'media' && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredMedia.map(item => (
                 <div key={item.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm group relative">
@@ -2153,7 +2154,9 @@ export const AdminDashboard = ({
                 </div>
               ))}
             </div>
-          ) : (
+          )}
+
+          {(activeTab === 'articles' || activeTab === 'events') && (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
               <div className="grid grid-cols-12 px-6 py-4 bg-slate-50/50 border-bottom border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <div className="col-span-6">Nom / Titre</div>
@@ -2353,12 +2356,12 @@ export const AdminDashboard = ({
               </div>
             </div>
           )}
-        </div>
-      )}
+        </motion.div>
+      </AnimatePresence>
     </main>
-      </div>
-    </div>
-  );
+  </div>
+</div>
+);
 };
 
 const TransactionsList = ({ onValidate }: { onValidate?: (tid: string, uid: string) => Promise<void> }) => {
@@ -2500,110 +2503,6 @@ export const AdminEditor = ({
     ...data
   });
 
-  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
-  const debouncedContent = useDebounce(formData.content, 1000);
-  const debouncedTitle = useDebounce(formData.title, 1000);
-
-  const generateSlug = (text: string) => {
-    return text
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^\w ]+/g, '')
-      .replace(/ +/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
-  const generateExcerpt = (content: string, maxLength: number = 150) => {
-    if (!content) return '';
-    const cleanContent = content.replace(/[#*`_\[\]()]/g, '').trim();
-    const sentences = cleanContent.split(/[.!?]/).filter(s => s.trim().length > 0);
-    let excerpt = sentences.slice(0, 2).join('. ').trim();
-    if (excerpt.length > maxLength) {
-      excerpt = excerpt.substring(0, maxLength).trim() + '...';
-    } else if (excerpt.length > 0 && excerpt.length < cleanContent.length && !excerpt.endsWith('.')) {
-      excerpt += '.';
-    }
-    return excerpt;
-  };
-
-  const generateSeoTitle = (title: string) => {
-    if (!title) return '';
-    let seo = title.trim();
-    if (seo.length > 60) {
-      seo = seo.substring(0, 57) + '...';
-    } else if (seo.length + 15 <= 60) {
-      seo = `${seo} - Akwaba Info`;
-    }
-    return seo;
-  };
-
-  const generateMetaDescription = (content: string, maxLength: number = 160) => {
-    if (!content) return '';
-    const cleanContent = content.replace(/[#*`_\[\]()]/g, '').trim();
-    let desc = cleanContent;
-    if (desc.length > maxLength) {
-      desc = desc.substring(0, maxLength).trim() + '...';
-    }
-    return desc;
-  };
-
-  const calculateReadingTime = (content: string) => {
-    if (!content) return '1 min';
-    const words = content.trim().split(/\s+/).length;
-    const minutes = Math.ceil(words / 200);
-    return `${minutes} min`;
-  };
-
-  const extractTags = (content: string, maxTags: number = 5) => {
-    if (!content) return [];
-    const stopWords = ['le', 'la', 'les', 'de', 'des', 'un', 'une', 'et', 'ou', 'à', 'en', 'au', 'aux', 'du', 'pour', 'par', 'sur', 'dans', 'ce', 'cette', 'ces', 'est', 'sont', 'que', 'qui', 'plus', 'avec', 'tout'];
-    const words = content
-      .toLowerCase()
-      .replace(/[.,!?;:()\[\]{}"]/g, ' ')
-      .split(/\s+/)
-      .filter(w => w.length > 3 && !stopWords.includes(w));
-    
-    const freq: Record<string, number> = {};
-    words.forEach(w => {
-      freq[w] = (freq[w] || 0) + 1;
-    });
-    
-    return Object.entries(freq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, maxTags)
-      .map(entry => entry[0]);
-  };
-
-  // Automatic SEO generation on content change
-  useEffect(() => {
-    if (debouncedContent && debouncedContent.length > 100) {
-      const updates: any = {};
-      if (!touchedFields.excerpt) updates.excerpt = generateExcerpt(debouncedContent);
-      if (!touchedFields.readingTime && type === 'article') updates.readingTime = calculateReadingTime(debouncedContent);
-      if (!touchedFields.seoDescription) updates.seoDescription = generateMetaDescription(debouncedContent);
-      if (!touchedFields.tags && type === 'article' && (formData.tags?.length === 0 || !touchedFields.tags)) {
-        updates.tags = extractTags(debouncedContent);
-      }
-      
-      if (Object.keys(updates).length > 0) {
-        setFormData((prev: any) => ({ ...prev, ...updates }));
-      }
-    }
-  }, [debouncedContent]);
-
-  // Automatic SEO generation on title change
-  useEffect(() => {
-    if (debouncedTitle && debouncedTitle.length > 5) {
-      const updates: any = {};
-      if (!touchedFields.slug) updates.slug = generateSlug(debouncedTitle);
-      if (!touchedFields.seoTitle) updates.seoTitle = generateSeoTitle(debouncedTitle);
-      
-      if (Object.keys(updates).length > 0) {
-        setFormData((prev: any) => ({ ...prev, ...updates }));
-      }
-    }
-  }, [debouncedTitle]);
 
   // Helper to ensure dates are in correct format for inputs and in ASCII
   const formatForInput = (d: string | null | undefined, inputType: 'date' | 'datetime-local') => {
@@ -2630,51 +2529,54 @@ export const AdminEditor = ({
   
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [seoGenerated, setSeoGenerated] = useState(false);
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
 
-  const handleAutoSeo = () => {
-    const newDraft = { ...formData };
-    let changed = false;
+  const debouncedContent = useDebounce(formData.content, 1000);
+  const debouncedTitle = useDebounce(formData.title, 1000);
 
-    if (!newDraft.slug && newDraft.title) {
-      newDraft.slug = generateSlug(newDraft.title);
-      changed = true;
-    }
-
-    if (!newDraft.excerpt && newDraft.content) {
-      newDraft.excerpt = generateExcerpt(newDraft.content);
-      changed = true;
-    }
-
-    if (!newDraft.seoTitle && newDraft.title) {
-      newDraft.seoTitle = generateSeoTitle(newDraft.title);
-      changed = true;
-    }
-
-    if (!newDraft.seoDescription && newDraft.content) {
-      newDraft.seoDescription = generateMetaDescription(newDraft.content);
-      changed = true;
-    }
-
-    if (type === 'article') {
-      if ((!newDraft.readingTime || newDraft.readingTime === '4 min') && newDraft.content) {
-        newDraft.readingTime = calculateReadingTime(newDraft.content);
-        changed = true;
+  useEffect(() => {
+    if (debouncedContent && type === 'article') {
+      const updates: any = {};
+      
+      if (!touchedFields.excerpt) {
+        updates.excerpt = debouncedContent.slice(0, 160).replace(/[#*`]/g, '') + '...';
       }
-      if ((!newDraft.tags || newDraft.tags.length === 0) && newDraft.content) {
-        newDraft.tags = extractTags(newDraft.content);
-        changed = true;
+      
+      if (!touchedFields.readingTime) {
+        const words = debouncedContent.split(/\s+/).length;
+        updates.readingTime = `${Math.max(1, Math.round(words / 200))} min`;
+      }
+
+      if (!touchedFields.seoDescription) {
+        updates.seoDescription = debouncedContent.slice(0, 150).replace(/[#*`]/g, '');
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setFormData((prev: any) => ({ ...prev, ...updates }));
       }
     }
+  }, [debouncedContent]);
 
-    if (changed) {
-      setFormData(newDraft);
-      setSeoGenerated(true);
-      setTimeout(() => setSeoGenerated(false), 2000);
-    } else {
-      alert("Tous les champs SEO sont déjà remplis !");
+  useEffect(() => {
+    if (debouncedTitle && type === 'article') {
+      const updates: any = {};
+      
+      if (!touchedFields.slug) {
+        updates.slug = debouncedTitle.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-');
+      }
+
+      if (!touchedFields.seoTitle) {
+        updates.seoTitle = debouncedTitle;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        setFormData((prev: any) => ({ ...prev, ...updates }));
+      }
     }
-  };
+  }, [debouncedTitle]);
 
   const validate = () => {
     if (!formData.title || formData.title.length < 5) {
@@ -2696,11 +2598,7 @@ export const AdminEditor = ({
     if (!validate()) return;
     setIsSaving(true);
 
-    // Auto-generate slug if missing
     const finalData = { ...formData };
-    if (!finalData.slug && finalData.title) {
-      finalData.slug = `${generateSlug(finalData.title)}-${Math.random().toString(36).substring(2, 7)}`;
-    }
 
     // Sécurité : Réinitialiser isSaving après 20s si la promesse ne revient pas
     const safetyTimer = setTimeout(() => {
@@ -2836,7 +2734,7 @@ export const AdminEditor = ({
                   value={formData.title}
                   onChange={(e) => {
                     setFormData({...formData, title: e.target.value});
-                    setTouchedFields(prev => ({...prev, title: true}));
+                    if (type === 'article') setTouchedFields(prev => ({...prev, title: true}));
                   }}
                   placeholder="Entrez un titre percutant..."
                   className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-5 text-2xl font-black outline-none focus:ring-2 focus:ring-primary/20 shadow-sm"
@@ -2859,7 +2757,6 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `**${selectedText}**` + text.substring(end);
                           setFormData({...formData, content: newText});
-                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Gras"
@@ -2877,7 +2774,6 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `*${selectedText}*` + text.substring(end);
                           setFormData({...formData, content: newText});
-                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Italique"
@@ -2895,7 +2791,6 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `[${selectedText}](url)` + text.substring(end);
                           setFormData({...formData, content: newText});
-                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Lien"
@@ -2913,7 +2808,6 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `\n- ${selectedText}` + text.substring(end);
                           setFormData({...formData, content: newText});
-                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="p-2 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500"
                         title="Liste"
@@ -2932,7 +2826,6 @@ export const AdminEditor = ({
                           const selectedText = text.substring(start, end);
                           const newText = text.substring(0, start) + `### ${selectedText}` + text.substring(end);
                           setFormData({...formData, content: newText});
-                          setTouchedFields(prev => ({...prev, content: true}));
                         }}
                         className="px-2 py-1 hover:bg-white hover:text-primary rounded-lg transition-all text-slate-500 text-[10px] font-black"
                         title="Titre"
@@ -2946,7 +2839,7 @@ export const AdminEditor = ({
                     value={formData.content}
                     onChange={(e) => {
                       setFormData({...formData, content: e.target.value});
-                      setTouchedFields(prev => ({...prev, content: true}));
+                      if (type === 'article') setTouchedFields(prev => ({...prev, content: true}));
                     }}
                     placeholder="Saisissez votre texte ici. Utilisez les boutons ci-dessus pour la mise en forme..."
                     className="w-full bg-white border border-slate-100 rounded-3xl px-6 py-6 min-h-[500px] text-sm leading-relaxed outline-none focus:ring-2 focus:ring-primary/20 shadow-sm resize-y"
@@ -2964,16 +2857,6 @@ export const AdminEditor = ({
           <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-lg space-y-6">
             <div className="flex items-center justify-between">
               <h4 className="font-black text-sm uppercase tracking-widest">Métadonnées</h4>
-              <button 
-                onClick={handleAutoSeo}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all",
-                  seoGenerated ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500 hover:bg-primary/10 hover:text-primary"
-                )}
-              >
-                {seoGenerated ? <CheckCircle size={12} /> : "🔄"}
-                {seoGenerated ? "SEO Généré !" : "Générer le SEO"}
-              </button>
             </div>
             
             <div className="space-y-6">
@@ -3022,7 +2905,6 @@ export const AdminEditor = ({
                     value={formData.slug}
                     onChange={(e) => {
                       setFormData({...formData, slug: e.target.value});
-                      setTouchedFields(prev => ({...prev, slug: true}));
                     }}
                     className="w-full bg-slate-50 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10"
                     placeholder="titre-de-l-element"
