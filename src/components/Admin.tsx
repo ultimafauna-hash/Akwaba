@@ -825,13 +825,21 @@ export const AdminDashboard = ({
               >
                 <ArrowRight size={20} className="transform rotate-180" />
               </button>
-             <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg relative">
+             <button 
+                onClick={() => setActiveTab('comments')}
+                className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg relative"
+                title="Notifications & Commentaires"
+              >
                 <Bell size={20} />
                 <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white" />
              </button>
-             <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary border-2 border-primary/10">
-                AD
-             </div>
+             <button 
+                onClick={() => setActiveTab('settings')}
+                className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary border-2 border-primary/10 hover:bg-primary/30 transition-all overflow-hidden"
+                title="Paramètres de profil"
+              >
+                 <User size={18} />
+              </button>
           </div>
         </header>
 
