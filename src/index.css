@@ -15,14 +15,32 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
   body {
     @apply bg-beige text-slate-900 font-sans antialiased;
+    overflow-x: hidden;
+    width: 100vw;
   }
 
-  /* Empêche l'auto-zoom sur iOS lors du focus sur un champ */
+  * {
+    box-sizing: border-box;
+  }
+
   input, textarea, select {
     font-size: 16px !important;
+    width: 100%;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
   }
 }
 

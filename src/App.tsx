@@ -61,7 +61,8 @@ import {
   Shield,
   ShoppingBag,
   Info,
-  ExternalLink
+  ExternalLink,
+  List as ListIcon
 } from 'lucide-react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -126,9 +127,7 @@ const Badge = ({ children, category, icon }: { children: React.ReactNode; catego
       {children}
     </span>
   );
-};
-
-const HeroSlideshow = ({ 
+};const HeroSlideshow = ({ 
   articles, 
   onArticleClick, 
   onBookmark, 
@@ -137,13 +136,23 @@ const HeroSlideshow = ({
   categoryIcons
 }: { 
   articles: Article[]; 
-  onArticleClick: (a: Article) => void;
+  onArticleClick: (a: Article) => void; 
   onBookmark: (id: string, e: React.MouseEvent) => void;
   bookmarkedIds: Set<string>;
   onAuthorClick?: (name: string) => void;
   categoryIcons?: Record<string, string>;
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % articles.length);
+  };
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + articles.length) % articles.length);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -186,6 +195,25 @@ const HeroSlideshow = ({
               <Bookmark size={24} fill={bookmarkedIds.has(articles[currentIndex].id) ? "currentColor" : "none"} />
             </button>
           </div>
+          
+          {/* Slider Arrows */}
+          <div className="absolute inset-y-0 left-0 flex items-center px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={handlePrev}
+              className="p-3 bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all"
+            >
+              <ChevronLeft size={24} />
+            </button>
+          </div>
+          <div className="absolute inset-y-0 right-0 flex items-center px-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={handleNext}
+              className="p-3 bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all"
+            >
+              <ChevronRight size={24} />
+            </button>
+          </div>
+
           <div className="absolute bottom-0 left-0 p-6 md:p-10 w-full md:w-3/4">
             <Badge category={articles[currentIndex].category} icon={categoryIcons?.[articles[currentIndex].category]}>{articles[currentIndex].category}</Badge>
             <h2 className="text-white font-display font-black text-2xl md:text-4xl mt-4 leading-[1.1] tracking-tight">
@@ -228,22 +256,34 @@ const TrendingSection = ({
   onBookmark, 
   bookmarkedIds,
   onAuthorClick,
-  categoryIcons
+  categoryIcons,
+  onSeeMore
 }: { 
   articles: Article[]; 
-  onArticleClick: (a: Article) => void;
+  onArticleClick: (a: Article) => void; 
   onBookmark: (id: string, e: React.MouseEvent) => void;
   bookmarkedIds: Set<string>;
   onAuthorClick?: (name: string) => void;
   categoryIcons?: Record<string, string>;
+  onSeeMore?: () => void;
 }) => {
   return (
     <section className="space-y-6">
-      <div className="flex items-center gap-2">
-        <div className="p-2 bg-primary/10 rounded-lg text-primary flex items-center gap-1.5">
-          <TrendingUp size={20} />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-lg text-primary flex items-center gap-1.5">
+            <TrendingUp size={20} />
+          </div>
+          <h2 className="font-black text-2xl uppercase tracking-tighter italic">Tendances</h2>
         </div>
-        <h2 className="font-black text-2xl uppercase tracking-tighter italic">Tendances</h2>
+        {onSeeMore && (
+          <button 
+            onClick={onSeeMore}
+            className="flex items-center gap-1 text-[10px] font-black uppercase text-primary tracking-widest hover:translate-x-1 transition-all"
+          >
+            Voir plus <ChevronRight size={14} />
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.map((article, idx) => (
@@ -456,16 +496,28 @@ const UserProfileView = ({
   onLogout,
   onAuthorClick,
   onUpgrade,
+  onFollowAuthor,
+  onFollowCategory,
+  followedAuthors,
+  followedCategories,
+  badges,
+  points,
   categoryIcons
 }: { 
-  user: FirebaseUser, 
+  user: any, 
   likedArticles: Article[], 
   savedArticles: Article[], 
   comments: Comment[],
-  onArticleClick: (a: Article) => void,
+  onArticleClick: (a: Article) => void, 
   onLogout: () => void,
   onAuthorClick?: (name: string) => void,
   onUpgrade: () => void,
+  onFollowAuthor?: (author: string) => void,
+  onFollowCategory?: (category: string) => void,
+  followedAuthors?: Set<string>,
+  followedCategories?: Set<string>,
+  badges?: string[],
+  points?: number,
   categoryIcons?: Record<string, string>
 }) => {
   const [activeTab, setActiveTab] = useState<'saved' | 'liked' | 'activity'>('saved');
@@ -4057,6 +4109,7 @@ export default function App() {
                     bookmarkedIds={new Set()}
                     onAuthorClick={handleAuthorClick}
                     categoryIcons={siteSettings?.categories_icons}
+                    onSeeMore={() => handleCategoryClick('Articles')}
                   />
                   <hr className="border-slate-100 my-10" />
                   <GoogleAd className="my-10" label="Annonce à la une" />
@@ -4323,18 +4376,25 @@ export default function App() {
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-10">
                 <div className="space-y-8">
-                  <div className="flex flex-col gap-6">
-                    <AudioPlayer article={selectedArticle} />
-                    {selectedArticle.gallery && selectedArticle.gallery.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                         {selectedArticle.gallery.map((img, i) => (
-                           <div key={i} className="aspect-square rounded-2xl overflow-hidden cursor-zoom-in" onClick={() => {/* Open gallery */}}>
-                             <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                           </div>
-                         ))}
-                      </div>
-                    )}
-                  </div>
+                    <div className="flex flex-col gap-6">
+                      <AudioPlayer article={selectedArticle} />
+                      {selectedArticle.gallery && selectedArticle.gallery.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                           {selectedArticle.gallery.map((img, i) => (
+                             <div 
+                               key={i} 
+                               className="aspect-square rounded-2xl overflow-hidden cursor-zoom-in group relative" 
+                               onClick={() => window.open(img, '_blank')}
+                             >
+                               <img src={img} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" referrerPolicy="no-referrer" />
+                               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                 <Search size={24} className="text-white" />
+                               </div>
+                             </div>
+                           ))}
+                        </div>
+                      )}
+                    </div>
                   <GoogleAd className="mb-8" />
                   
                   <div className="markdown-body text-base md:text-lg leading-relaxed relative">
