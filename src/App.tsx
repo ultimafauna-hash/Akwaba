@@ -427,12 +427,16 @@ const ArticleCard = ({ article, onClick, variant = 'horizontal', onBookmark, isB
           )}
         </div>
         <div className="flex items-center justify-between mt-2 text-[10px] text-slate-500">
-          <span 
-            onClick={(e) => { e.stopPropagation(); onAuthorClick?.(article.author); }}
-            className="font-bold hover:text-primary cursor-pointer transition-colors"
-          >
-            {article.author}
-          </span>
+          <div className="flex items-center gap-2">
+            <span 
+              onClick={(e) => { e.stopPropagation(); onAuthorClick?.(article.author); }}
+              className="font-bold hover:text-primary cursor-pointer transition-colors"
+            >
+              {article.author}
+            </span>
+            <span>•</span>
+            <span>{safeFormatDate(article.date, 'dd MMM yyyy')}</span>
+          </div>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-0.5"><Eye size={10} /> {article.views}</span>
             <span className="flex items-center gap-0.5"><Heart size={10} /> {article.likes}</span>
@@ -3535,11 +3539,12 @@ export default function App() {
       )}
 
       <div className={cn(
-        "min-h-screen transition-colors duration-300 african-pattern pb-16 lg:pb-0 relative",
+        "min-h-screen transition-colors duration-300 african-pattern relative",
+        (currentView === 'admin' || currentView === 'admin-login') ? "pb-0" : "pb-16 lg:pb-0",
         isDarkMode ? "bg-slate-950 text-white" : "bg-[#F5F1EB] text-slate-900"
       )}>
-        <PulseSidebar />
-      <FlashInfo articles={FLASH_NEWS} />
+        {!['admin', 'admin-login'].includes(currentView) && <PulseSidebar />}
+      {!['admin', 'admin-login'].includes(currentView) && <FlashInfo articles={FLASH_NEWS} />}
       
       {/* Active Notification Toast */}
       <AnimatePresence>
@@ -3749,6 +3754,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Header / Navbar */}
+      {!['admin', 'admin-login'].includes(currentView) && (
       <header className={cn(
         "sticky top-0 z-50 backdrop-blur-xl border-b transition-colors",
         isDarkMode ? "bg-slate-950/80 border-slate-800" : "bg-white/80 border-slate-200"
@@ -3980,8 +3986,13 @@ export default function App() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="max-w-7xl mx-auto px-4 py-6 md:py-10 pb-28 lg:pb-10">
+      <main className={cn(
+        (currentView === 'admin' || currentView === 'admin-login') 
+          ? "w-full" 
+          : "max-w-7xl mx-auto px-4 py-6 md:py-10 pb-28 lg:pb-10"
+      )}>
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div 
@@ -5546,6 +5557,7 @@ Dernière mise à jour : Avril 2026
       </main>
 
       {/* Footer */}
+      {!['admin', 'admin-login'].includes(currentView) && (
       <footer className={cn(
         "border-t py-12 md:py-20 transition-colors",
         isDarkMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"
@@ -5679,8 +5691,10 @@ Dernière mise à jour : Avril 2026
           </div>
         </div>
       </footer>
+      )}
 
       {/* Mobile Bottom Nav */}
+      {!['admin', 'admin-login'].includes(currentView) && (
       <nav className={cn(
         "lg:hidden fixed bottom-0 left-0 right-0 h-16 backdrop-blur-xl border-t flex items-center justify-around px-4 z-50",
         isDarkMode ? "bg-slate-950/90 border-slate-800" : "bg-white/90 border-slate-200"
@@ -5702,6 +5716,7 @@ Dernière mise à jour : Avril 2026
           <span className="text-[10px] font-bold">À propos</span>
         </button>
       </nav>
+      )}
       <AuthModal 
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 

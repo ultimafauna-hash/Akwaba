@@ -390,6 +390,17 @@ export const PollEditor = ({ poll, onSave, onCancel }: { poll: Partial<Poll>, on
   );
 };
 
+const safeFormatDateAdmin = (dateStr: any, formatStr: string = 'dd MMM yyyy') => {
+  try {
+    if (!dateStr) return '--';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '--';
+    return format(date, formatStr, { locale: fr });
+  } catch {
+    return '--';
+  }
+};
+
 export const AdminDashboard = ({ 
   articles, 
   events,
@@ -677,7 +688,7 @@ export const AdminDashboard = ({
   const filteredMedia = mediaLibrary.filter(m => m.url.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
-    <div className={cn("flex h-screen bg-slate-50 dark:bg-slate-950 overflow-hidden", darkMode && "dark")}>
+    <div className="flex h-screen bg-beige overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -693,7 +704,7 @@ export const AdminDashboard = ({
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-[280px] bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0",
+        "fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-100 flex flex-col transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="p-8 shrink-0">
@@ -702,7 +713,7 @@ export const AdminDashboard = ({
                <Zap size={24} fill="currentColor" />
              </div>
              <div>
-               <h1 className="text-xl font-black italic tracking-tighter dark:text-white">AKWABA <span className="text-primary">ADMIN</span></h1>
+               <h1 className="text-xl font-black italic tracking-tighter">AKWABA <span className="text-primary">ADMIN</span></h1>
                <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em]">Management Suite v2</p>
              </div>
           </div>
@@ -738,7 +749,7 @@ export const AdminDashboard = ({
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all",
                 activeTab === item.id 
                   ? "bg-primary/5 text-primary" 
-                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  : "text-slate-500 hover:bg-slate-50"
               )}
             >
               <item.icon size={18} className={activeTab === item.id ? "text-primary" : "text-slate-400"} />
@@ -750,10 +761,10 @@ export const AdminDashboard = ({
           ))}
         </nav>
 
-        <div className="p-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+        <div className="p-6 border-t border-slate-100 space-y-4">
            <button 
              onClick={() => setDarkMode(!darkMode)}
-             className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
+             className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 text-slate-600 transition-colors"
            >
              <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
                {darkMode ? <Sun size={14} /> : <Moon size={14} />}
@@ -771,7 +782,7 @@ export const AdminDashboard = ({
            </button>
            <button 
              onClick={onLogout}
-             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
            >
              <LogOut size={18} />
              Déconnexion
@@ -781,42 +792,42 @@ export const AdminDashboard = ({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-20 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-8 shrink-0 relative z-10 shadow-sm">
+        {/* Top Header */}
+        <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0 relative z-10 shadow-sm">
           <div className="flex items-center gap-4">
              <button 
                onClick={() => setIsSidebarOpen(true)}
-               className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+               className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg"
              >
                <Menu size={20} />
              </button>
              <div className="hidden sm:block">
-               <h2 className="text-lg font-black dark:text-white capitalize">{activeTab.replace('-', ' ')}</h2>
+               <h2 className="text-lg font-black text-slate-800 capitalize">{activeTab.replace('-', ' ')}</h2>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Akwaba Info Control Panel</p>
              </div>
           </div>
 
           <div className="flex items-center gap-4">
-             <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+             <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
                 <Search size={16} className="text-slate-400" />
                 <input 
                   type="text" 
                   placeholder="Rechercher..."
-                  className="bg-transparent border-none outline-none text-xs font-medium w-40 dark:text-white"
+                  className="bg-transparent border-none outline-none text-xs font-medium w-40 text-slate-800"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
              </div>
              <button 
                 onClick={onGenerateCode}
-                className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative"
+                className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg relative"
                 title="Exporter les données"
               >
                 <ArrowRight size={20} className="transform rotate-180" />
               </button>
-             <button className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative">
+             <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg relative">
                 <Bell size={20} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-slate-900" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white" />
              </button>
              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary border-2 border-primary/10">
                 AD
@@ -825,7 +836,7 @@ export const AdminDashboard = ({
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-y-auto p-8 no-scrollbar bg-slate-50 dark:bg-slate-950">
+        <main className="flex-1 overflow-y-auto p-8 no-scrollbar bg-beige">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -836,14 +847,14 @@ export const AdminDashboard = ({
               className="max-w-[1600px] mx-auto"
             >
               {(activeTab === 'articles' || activeTab === 'events' || activeTab === 'polls' || activeTab === 'live-blog' || activeTab === 'web-tv' || activeTab === 'classifieds') && (
-                 <div className="mb-8 flex items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-[30px] border border-slate-100 dark:border-slate-800 shadow-sm">
+                 <div className="mb-8 flex items-center justify-between bg-white p-6 rounded-[30px] border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-4 flex-1">
                       <div className="relative group max-w-md w-full">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input 
                           type="text" 
                           placeholder="Filtre rapide..."
-                          className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-[18px] pl-14 pr-6 py-3 text-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all dark:text-white"
+                          className="w-full bg-slate-50 border-none rounded-[18px] pl-14 pr-6 py-3 text-sm focus:ring-4 focus:ring-primary/5 outline-none transition-all text-slate-800"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -879,47 +890,47 @@ export const AdminDashboard = ({
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.1 }}
                           key={stat.label} 
-                          className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-8 rounded-[35px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
+                          className="bg-white border border-slate-100 p-8 rounded-[35px] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group"
                         >
                           <div className="flex items-center justify-between mb-4">
                             <div className={cn("p-4 rounded-2xl", stat.bg)}>
                               <stat.icon className={stat.color} size={28} />
                             </div>
-                            <TrendingUp className="text-slate-200 dark:text-slate-700" size={24} />
+                            <TrendingUp className="text-slate-200" size={24} />
                           </div>
-                          <p className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest">{stat.label}</p>
-                          <h3 className="text-3xl font-black mt-2 dark:text-white italic">{stat.value}</h3>
+                          <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{stat.label}</p>
+                          <h3 className="text-3xl font-black mt-2 text-slate-800 italic">{stat.value}</h3>
                         </motion.div>
                       ))}
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                       <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden">
+                       <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl overflow-hidden">
                          <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-xl font-black dark:text-white">Articles Récents</h3>
+                            <h3 className="text-xl font-black text-slate-800">Articles Récents</h3>
                             <button onClick={() => setActiveTab('articles')} className="text-[10px] font-black uppercase text-primary tracking-widest">Voir tout</button>
                          </div>
                          <div className="overflow-x-auto">
                             <table className="w-full">
                                <thead>
-                                  <tr className="text-left border-b border-slate-50 dark:border-slate-800">
+                                  <tr className="text-left border-b border-slate-50">
                                      <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Article</th>
                                      <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Catégorie</th>
                                      <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Vues</th>
                                      <th className="pb-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Action</th>
                                   </tr>
                                </thead>
-                               <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                               <tbody className="divide-y divide-slate-50">
                                   {articles.slice(0, 5).map(article => (
-                                    <tr key={article.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <tr key={article.id} className="group hover:bg-slate-50 transition-colors">
                                       <td className="py-4">
                                         <div className="flex items-center gap-4">
-                                           <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
+                                           <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden shrink-0">
                                               {article.image && <img src={article.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />}
                                            </div>
                                            <div className="min-w-0">
-                                              <p className="font-bold text-slate-900 dark:text-white truncate max-w-[200px]">{article.title}</p>
-                                              <p className="text-[10px] text-slate-400 font-bold uppercase">{article.date}</p>
+                                              <p className="font-bold text-slate-900 truncate max-w-[200px]">{article.title}</p>
+                                              <p className="text-[10px] text-slate-400 font-bold uppercase">{safeFormatDateAdmin(article.date)}</p>
                                            </div>
                                         </div>
                                       </td>
@@ -927,7 +938,7 @@ export const AdminDashboard = ({
                                          <span className="px-3 py-1 bg-primary/5 text-primary rounded-lg text-[10px] font-black uppercase">{article.category}</span>
                                       </td>
                                       <td className="py-4">
-                                         <div className="flex items-center gap-1 text-slate-600 dark:text-slate-400 text-xs font-bold">
+                                         <div className="flex items-center gap-1 text-slate-600 text-xs font-bold">
                                             <Eye size={14} /> {article.views || 0}
                                          </div>
                                       </td>
@@ -947,7 +958,7 @@ export const AdminDashboard = ({
                        </div>
 
                        <div className="space-y-8">
-                         <div className="bg-slate-900 p-8 rounded-[40px] shadow-xl text-white relative overflow-hidden group">
+                         <div className="bg-primary p-8 rounded-[40px] shadow-xl text-white relative overflow-hidden group">
                            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl group-hover:bg-primary/30 transition-all" />
                            <h3 className="text-xl font-black mb-2 italic">Akwaba Plus</h3>
                            <p className="text-slate-400 text-xs leading-relaxed mb-6 font-bold uppercase tracking-widest">Optimisez votre gestion</p>
@@ -964,12 +975,12 @@ export const AdminDashboard = ({
                            </button>
                          </div>
 
-                         <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
+                          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-xl flex flex-col items-center justify-center text-center space-y-4">
                            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center">
                              <Activity size={32} />
                            </div>
                            <div>
-                             <h4 className="text-lg font-black dark:text-white italic">Système OK</h4>
+                              <h4 className="text-lg font-black text-slate-800 italic">Système OK</h4>
                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Tout fonctionne normalement</p>
                            </div>
                          </div>
@@ -2180,7 +2191,7 @@ export const AdminDashboard = ({
                       {article.category}
                     </div>
                     <div className="col-span-2 text-xs text-slate-500 font-mono">
-                      {article.date}
+                      <div className="text-[10px] font-bold text-slate-400 uppercase">{safeFormatDateAdmin(article.date)}</div>
                     </div>
                     <div className="col-span-2 flex justify-end gap-2 pr-2">
                       <button 
@@ -2214,7 +2225,7 @@ export const AdminDashboard = ({
                       {event.location}
                     </div>
                     <div className="col-span-2 text-xs text-slate-500 font-mono">
-                      {event.date}
+                      <div className="text-[10px] font-bold text-slate-400 uppercase">{safeFormatDateAdmin(event.date)}</div>
                     </div>
                     <div className="col-span-2 flex justify-end gap-2 pr-2">
                       <button 
