@@ -2175,12 +2175,18 @@ export const AdminDashboard = ({
             </div>
           )}
 
-          {(activeTab === 'articles' || activeTab === 'events') && (
+          {(activeTab === 'articles' || activeTab === 'events' || activeTab === 'live-blog' || activeTab === 'comments' || activeTab === 'classifieds') && (
             <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
               <div className="grid grid-cols-12 px-6 py-4 bg-slate-50/50 border-bottom border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
                 <div className="col-span-6">Nom / Titre</div>
-                <div className="col-span-2">{activeTab === 'articles' ? 'Catégorie' : activeTab === 'events' ? 'Lieu' : 'Date'}</div>
-                <div className="col-span-2">Date / Likes</div>
+                <div className="col-span-2">
+                  {activeTab === 'articles' ? 'Catégorie' : 
+                   activeTab === 'events' ? 'Lieu' : 
+                   activeTab === 'comments' ? 'Source' :
+                   activeTab === 'live-blog' ? 'Status' :
+                   'Info'}
+                </div>
+                <div className="col-span-2">Date / Stats</div>
                 <div className="col-span-2 text-right">Actions</div>
               </div>
               <div className="divide-y divide-slate-100">

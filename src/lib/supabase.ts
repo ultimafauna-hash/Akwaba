@@ -869,6 +869,97 @@ export const SupabaseService = {
       }
       throw new Error(`Échec de l'import: ${msg}`);
     }
+  },
+
+  async updateUserPoints(userId: string, points: number): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('profiles').update({ points }).eq('uid', userId);
+  },
+
+  async updateUserBadges(userId: string, badges: string[]): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('profiles').update({ badges }).eq('uid', userId);
+  },
+
+  // History
+  async getAllHistoryEvents(): Promise<any[]> {
+    if (isPlaceholder) return [];
+    const { data } = await supabase.from('history').select('*').order('date', { ascending: true });
+    return data || [];
+  },
+  async getHistoryEventsByDate(date: string): Promise<any[]> {
+    if (isPlaceholder) return [];
+    const { data } = await supabase.from('history').select('*').eq('date', date);
+    return data || [];
+  },
+  async createHistoryEvent(data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('history').insert(data);
+  },
+  async updateHistoryEvent(id: string, data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('history').update(data).eq('id', id);
+  },
+  async deleteHistoryEvent(id: string): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('history').delete().eq('id', id);
+  },
+
+  // Map
+  async getMapPoints(): Promise<any[]> {
+    if (isPlaceholder) return [];
+    const { data } = await supabase.from('map_points').select('*');
+    return data || [];
+  },
+  async createMapPoint(data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('map_points').insert(data);
+  },
+  async updateMapPoint(id: string, data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('map_points').update(data).eq('id', id);
+  },
+  async deleteMapPoint(id: string): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('map_points').delete().eq('id', id);
+  },
+
+  // Quizzes
+  async getQuizzes(): Promise<any[]> {
+    if (isPlaceholder) return [];
+    const { data } = await supabase.from('quizzes').select('*');
+    return data || [];
+  },
+  async createQuiz(data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('quizzes').insert(data);
+  },
+  async updateQuiz(id: string, data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('quizzes').update(data).eq('id', id);
+  },
+  async deleteQuiz(id: string): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('quizzes').delete().eq('id', id);
+  },
+
+  // Stories
+  async getStories(): Promise<any[]> {
+    if (isPlaceholder) return [];
+    const { data } = await supabase.from('stories').select('*').order('date', { ascending: false });
+    return data || [];
+  },
+  async createStory(data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('stories').insert(data);
+  },
+  async updateStory(id: string, data: any): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('stories').update(data).eq('id', id);
+  },
+  async deleteStory(id: string): Promise<void> {
+    if (isPlaceholder) return;
+    await supabase.from('stories').delete().eq('id', id);
   }
 };
 
