@@ -730,61 +730,154 @@ const ArticleCarousel = ({
   );
 };
 
-const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onEventClick: (e: Event) => void, onSeeAll: () => void }) => {
+const getCategoryEmoji = (category: string) => {
+  const c = category.toLowerCase();
+  if (c.includes('concert') || c.includes('musique')) return '🎵';
+  if (c.includes('politique')) return '🏛️';
+  if (c.includes('économie') || c.includes('business')) return '💼';
+  if (c.includes('sport')) return '⚽';
+  if (c.includes('culture') || c.includes('art')) return '🎨';
+  if (c.includes('conférence') || c.includes('débat')) return '📢';
+  return '📅';
+};
+
+const EventCard = ({ event, onClick }: { event: Event, onClick: (e: Event) => void }) => {
   return (
-    <section className="py-12 border-t border-slate-100">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="font-black text-xl md:text-2xl tracking-tighter uppercase">Agenda</h2>
-        </div>
-        <button 
-          onClick={onSeeAll}
-          className="text-primary font-bold text-xs flex items-center gap-2 group uppercase tracking-widest"
-        >
-          Voir tout <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-        </button>
+    <div 
+      onClick={() => onClick(event)}
+      className="bg-white rounded-[24px] overflow-hidden shadow-sm border border-slate-100 cursor-pointer group hover:shadow-xl transition-all duration-300 h-full flex flex-col"
+    >
+      <div className="relative h-[220px] overflow-hidden bg-slate-50">
+        {event.image && (
+          <img 
+            src={optimizeImage(event.image, 600)} 
+            alt={event.title} 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+            referrerPolicy="no-referrer"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
       </div>
-      
-      <div className="flex items-start gap-4 overflow-x-auto pb-6 no-scrollbar -mx-4 px-4 touch-pan-x snap-x">
-        {events.map((event) => (
-          <div 
-            key={event.id}
-            id={`event-card-home-${event.id}`}
-            onClick={() => onEventClick(event)}
-            className="w-[200px] flex-shrink-0 bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 cursor-pointer group snap-start"
+      <div className="p-6 flex flex-col flex-1 space-y-4">
+        <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest">
+           <span>{getCategoryEmoji(event.category)}</span> {event.category}
+        </div>
+        <h3 className="font-black text-xl text-slate-800 leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
+          {event.title}
+        </h3>
+        <div className="flex items-start gap-2 text-sm text-slate-500 font-medium italic">
+          <Map size={16} className="text-primary mt-1 flex-shrink-0" />
+          <span className="line-clamp-2">{event.location}</span>
+        </div>
+        <div className="mt-auto pt-4 flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest group/btn">
+          Voir l'événement <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onEventClick: (e: Event) => void, onSeeAll: () => void }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(3);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) setItemsPerPage(1);
+      else if (window.innerWidth < 1024) setItemsPerPage(2);
+      else setItemsPerPage(3);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const totalPages = Math.ceil(events.length / itemsPerPage);
+
+  const next = () => setCurrentIndex((prev) => (prev + 1) % totalPages);
+  const prev = () => setCurrentIndex((prev) => (prev - 1 + totalPages) % totalPages);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(next, 5000);
+    return () => clearInterval(timer);
+  }, [totalPages, isPaused]);
+
+  return (
+    <section 
+      className="py-16 border-t border-slate-100 overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div className="flex items-center justify-between mb-10 max-w-7xl mx-auto px-4">
+        <div>
+           <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-1 bg-primary rounded-full" />
+              <span className="text-primary font-black text-[10px] uppercase tracking-[0.2em]">Agenda Culturel</span>
+           </div>
+          <h2 className="font-black text-3xl md:text-5xl italic tracking-tighter uppercase">À ne pas <span className="text-primary">manquer</span></h2>
+        </div>
+        <div className="flex items-center gap-4">
+           <div className="hidden md:flex gap-2">
+              <button 
+                onClick={prev} 
+                className="p-3 rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-primary hover:border-primary hover:text-white transition-all shadow-sm active:scale-95"
+                aria-label="Précédent"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button 
+                onClick={next} 
+                className="p-3 rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-primary hover:border-primary hover:text-white transition-all shadow-sm active:scale-95"
+                aria-label="Suivant"
+              >
+                <ChevronRight size={20} />
+              </button>
+           </div>
+           <button 
+             onClick={onSeeAll}
+             className="h-12 bg-slate-900 hover:bg-primary text-white px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+           >
+             Voir l'Agenda Complet
+           </button>
+        </div>
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-1">
+        <div className="overflow-visible">
+          <motion.div 
+            animate={{ x: `-${currentIndex * 100}%` }}
+            transition={{ type: "spring", damping: 30, stiffness: 100 }}
+            className="flex"
           >
-            <div className="relative overflow-hidden bg-slate-50">
-              {event.image && (
-                <img 
-                  id={`event-img-home-${event.id}`}
-                  src={optimizeImage(event.image, 400, 'contain')} 
-                  alt={event.title} 
-                  className="w-full h-auto" 
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                  decoding="async"
-                />
-              )}
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute bottom-3 left-3 right-3 text-white">
-                <span className="bg-slate-900 text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest mb-1 inline-block">
-                  {event.category}
-                </span>
-                <h3 className="font-bold text-xs leading-tight line-clamp-1">{event.title}</h3>
+            {events.map((event) => (
+              <div 
+                key={event.id}
+                className={cn(
+                  "flex-shrink-0 px-3",
+                  itemsPerPage === 3 ? "w-1/3" : itemsPerPage === 2 ? "w-1/2" : "w-full"
+                )}
+              >
+                <EventCard event={event} onClick={onEventClick} />
               </div>
-            </div>
-            <div className="p-3 space-y-2">
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold italic">
-                <Calendar size={12} className="text-primary" />
-                {safeFormatDate(event.date, 'dd MMM yyyy')}
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold truncate">
-                <Map size={12} className="text-primary" />
-                {event.location}
-              </div>
-            </div>
-          </div>
-        ))}
+            ))}
+          </motion.div>
+        </div>
+        
+        {/* Mobile Navigation Indicators */}
+        <div className="flex justify-center gap-2 mt-10 md:hidden">
+           {[...Array(totalPages)].map((_, i) => (
+             <button
+               key={i}
+               onClick={() => setCurrentIndex(i)}
+               className={cn(
+                 "h-1.5 rounded-full transition-all",
+                 currentIndex === i ? "w-8 bg-primary" : "w-3 bg-slate-200"
+               )}
+             />
+           ))}
+        </div>
       </div>
     </section>
   );
