@@ -440,7 +440,8 @@ export const AdminDashboard = ({
   webTV,
   onEditWebTV,
   onCreateWebTV,
-  onDeleteWebTV
+  onDeleteWebTV,
+  currentUser
 }: { 
   articles: Article[], 
   events: Event[],
@@ -474,13 +475,14 @@ export const AdminDashboard = ({
   onDeleteComment: (id: string) => void,
   onDeleteSubscriber: (id: string) => void,
   onDeleteMedia: (id: string) => void,
-  onBlockUser: (userId: string) => void,
+  onBlockUser: (userid: string) => void,
   onSaveSettings: (s: SiteSettings) => void,
   onLogout: () => void,
   onGenerateCode: () => void,
   onValidateTransaction?: (tid: string, uid: string) => Promise<void>,
   initialTab?: string,
-  setActiveNotification?: (n: { message: string, type: 'success' | 'urgent' | 'info' } | null) => void
+  setActiveNotification?: (n: { message: string, type: 'success' | 'urgent' | 'info' } | null) => void,
+  currentUser?: UserProfile | null
 }) => {
   const [activeTab, setActiveTab] = useState<string>(
     initialTab || (localStorage.getItem('akwaba_admin_tab')) || 'dashboard'
@@ -533,7 +535,7 @@ export const AdminDashboard = ({
     donationPaymentMethods: [],
     premiumPrice: 5000,
     isDonationActive: false,
-    isPremiumActive: false,
+    ispremiumactive: false,
     activePaymentMethods: {},
     paymentLinks: {},
     orangeMoneyNumber: '',
@@ -608,8 +610,8 @@ export const AdminDashboard = ({
 
   useEffect(() => {
     if (activeTab === 'support') {
-      const unsub = SupabaseService.subscribeToAllSupportMessages((userId, msgs) => {
-        setAllSupportMessages(prev => ({ ...prev, [userId]: msgs }));
+      const unsub = SupabaseService.subscribeToAllSupportMessages((userid, msgs) => {
+        setAllSupportMessages(prev => ({ ...prev, [userid]: msgs }));
       });
       return unsub;
     }
@@ -619,7 +621,7 @@ export const AdminDashboard = ({
     if (!replyText.trim() || !activeChatUserId) return;
     const adminMsg: SupportMessage = {
       id: Date.now().toString(),
-      userId: activeChatUserId,
+      userid: activeChatUserId,
       userName: 'Support Akwaba',
       content: replyText,
       date: new Date().toISOString(),
@@ -634,7 +636,7 @@ export const AdminDashboard = ({
     try {
       const notif = {
           id: Date.now().toString(),
-          userId: 'global',
+          userid: 'global',
           topic: alertTopic,
           title: alertTitle,
           message: alertMessage,
@@ -831,15 +833,22 @@ export const AdminDashboard = ({
                 title="Notifications & Commentaires"
               >
                 <Bell size={20} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white" />
+                {stats?.totalUnreadNotifs > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white animate-pulse" />
+                )}
              </button>
              <button 
                 onClick={() => setActiveTab('settings')}
-                className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-black text-primary border-2 border-primary/10 hover:bg-primary/30 transition-all overflow-hidden"
+                className="w-10 h-10 rounded-full border-2 border-primary/20 hover:border-primary transition-all overflow-hidden bg-slate-50 flex items-center justify-center p-0.5 shadow-sm"
                 title="Paramètres de profil"
               >
-                 <User size={18} />
-              </button>
+                <img 
+                  src={currentUser?.photourl || `https://ui-avatars.com/api/?name=${currentUser?.displayname || 'Admin'}`} 
+                  alt="Admin Profile"
+                  className="w-full h-full rounded-full object-cover aspect-square"
+                  referrerPolicy="no-referrer"
+                />
+             </button>
           </div>
         </header>
 
@@ -1539,8 +1548,8 @@ export const AdminDashboard = ({
                              </div>
                              <input 
                                 type="checkbox" 
-                                checked={tempSettings.isPremiumActive}
-                                onChange={e => setTempSettings({...tempSettings, isPremiumActive: e.target.checked})}
+                                checked={tempSettings.ispremiumactive}
+                                onChange={e => setTempSettings({...tempSettings, ispremiumactive: e.target.checked})}
                                 className="w-8 h-8 rounded-full accent-primary cursor-pointer ring-4 ring-white/10"
                              />
                           </div>
@@ -1656,20 +1665,20 @@ export const AdminDashboard = ({
                       <p className="text-xs text-slate-400 font-bold">Aucun chat actif.</p>
                     </div>
                   ) : (
-                    Object.entries(allSupportMessages).map(([userId, msgs]) => {
+                    Object.entries(allSupportMessages).map(([userid, msgs]) => {
                       const lastMsg = msgs[msgs.length - 1];
                       const user = msgs.find(m => !m.isAdmin);
                       return (
                         <div 
-                          key={userId}
-                          onClick={() => setActiveChatUserId(userId)}
+                          key={userid}
+                          onClick={() => setActiveChatUserId(userid)}
                           className={cn(
                             "p-5 cursor-pointer transition-all hover:bg-slate-50 flex gap-4 items-center",
-                            activeChatUserId === userId ? "bg-primary/5 border-r-4 border-primary" : ""
+                            activeChatUserId === userid ? "bg-primary/5 border-r-4 border-primary" : ""
                           )}
                         >
                           <img 
-                            src={user?.userPhoto || `https://ui-avatars.com/api/?name=${user?.userName || 'User'}`} 
+                            src={user?.userphoto || `https://ui-avatars.com/api/?name=${user?.username || 'User'}`} 
                             className="w-12 h-12 rounded-full border border-slate-100 bg-slate-50" 
                           />
                           <div className="flex-1 min-w-0">
@@ -2311,7 +2320,7 @@ export const AdminDashboard = ({
                     </div>
                     <div className="col-span-2 flex justify-end gap-2 pr-2">
                       <button 
-                        onClick={() => onBlockUser(comment.userId)}
+                        onClick={() => onBlockUser(comment.userid)}
                         className="p-2 bg-slate-50 text-slate-400 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all"
                         title="Bloquer l'utilisateur"
                       >
@@ -2458,7 +2467,7 @@ const TransactionsList = ({ onValidate }: { onValidate?: (tid: string, uid: stri
                 <div className="col-span-2 text-right flex items-center justify-end gap-3">
                    {t.status === 'pending' && t.type === 'subscription' && (
                      <button 
-                        onClick={() => handleValidate(t.id, t.userId)}
+                        onClick={() => handleValidate(t.id, t.userid)}
                         className="bg-emerald-500 text-white text-[9px] font-black px-3 py-1.5 rounded-lg hover:scale-105 transition-all shadow-lg shadow-emerald-500/20"
                      >
                        VALIDER
@@ -2501,22 +2510,22 @@ export const AdminEditor = ({
     video: data.video || '',
     excerpt: data.excerpt || '',
     content: data.content || '',
-    imageCredit: data.imageCredit || '',
-    seoTitle: data.seoTitle || '',
-    seoDescription: data.seoDescription || '',
-    socialImage: data.socialImage || '',
+    imagecredit: data.imagecredit || data.imageCredit || '',
+    seotitle: data.seotitle || data.seoTitle || '',
+    seodescription: data.seodescription || data.seoDescription || '',
+    socialimage: data.socialimage || data.socialImage || '',
     status: data.status || 'published',
-    scheduledAt: data.scheduledAt || null,
-    audioUrl: data.audioUrl || '',
+    scheduledat: data.scheduledat || data.scheduledAt || null,
+    audiourl: data.audiourl || data.audioUrl || '',
     gallery: data.gallery || [],
-    isPremium: data.isPremium || false,
+    ispremium: data.ispremium || data.isPremium || false,
     // Article specific
     ...(type === 'article' ? {
       category: data.category || 'Afrique',
       author: data.author || 'Équipe Akwaba Info',
-      authorRole: data.authorRole || 'Journaliste',
+      authorrole: data.authorrole || data.authorRole || 'Journaliste',
       source: data.source || '',
-      readingTime: data.readingTime || '4 min',
+      readingtime: data.readingtime || data.readingTime || '4 min',
       views: data.views || 0,
       likes: data.likes || 0,
       tags: data.tags || [],
@@ -3269,8 +3278,8 @@ export const ClassifiedEditor = ({
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Lien Image</label>
               <GitHubImageUpload 
-                value={formData.imageUrl || ''}
-                onChange={val => setFormData({...formData, imageUrl: val})}
+                value={formData.imageurl || ''}
+                onChange={val => setFormData({...formData, imageurl: val})}
                 placeholder="Upload ou lien URL..."
               />
             </div>
@@ -3353,8 +3362,8 @@ const PremiumUserList = ({ onUpgrade, onUpdateStatus }: { onUpgrade: (uid: strin
   }, []);
 
   const filtered = users.filter(u => 
-    u.displayName.toLowerCase().includes(subSearch.toLowerCase()) || 
-    u.email.toLowerCase().includes(subSearch.toLowerCase())
+    (u.displayname || '').toLowerCase().includes(subSearch.toLowerCase()) || 
+    (u.email || '').toLowerCase().includes(subSearch.toLowerCase())
   );
 
   if (loading) return <div className="p-10 text-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" /></div>;
@@ -3380,21 +3389,21 @@ const PremiumUserList = ({ onUpgrade, onUpdateStatus }: { onUpgrade: (uid: strin
           <div key={user.uid} className="grid grid-cols-12 px-6 py-5 items-center hover:bg-slate-50/50 transition-colors group">
             <div className="col-span-4 flex items-center gap-3">
               <div className="w-12 h-12 rounded-[18px] overflow-hidden bg-slate-100 border-2 border-white shadow-md">
-                <img src={user.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                <img src={user.photourl || `https://ui-avatars.com/api/?name=${user.displayname}`} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               <div className="min-w-0">
-                <p className="font-black text-slate-900 truncate text-[13px] tracking-tight">{user.displayName}</p>
+                <p className="font-black text-slate-900 truncate text-[13px] tracking-tight">{user.displayname}</p>
                 <p className="text-[10px] text-slate-500 truncate font-medium">{user.email}</p>
               </div>
             </div>
             <div className="col-span-3">
-              {user.isPremium ? (
+              {user.ispremium ? (
                 <div className="flex flex-col">
                   <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter flex items-center gap-1">
                     <CheckCircle size={10} /> Abonné Actif
                   </span>
                   <span className="text-[10px] text-slate-400 font-bold">
-                    Expire le {user.premiumUntil ? format(new Date(user.premiumUntil), 'dd/MM/yyyy') : 'N/A'}
+                    Expire le {user.premiumuntil ? format(new Date(user.premiumuntil), 'dd/MM/yyyy') : 'N/A'}
                   </span>
                 </div>
               ) : (
@@ -3402,16 +3411,16 @@ const PremiumUserList = ({ onUpgrade, onUpdateStatus }: { onUpgrade: (uid: strin
               )}
             </div>
             <div className="col-span-2">
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-lg">{user.paymentMethod || 'MANUEL'}</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-1 rounded-lg">{user.paymentmethod || 'MANUEL'}</span>
             </div>
             <div className="col-span-3 flex justify-end gap-2">
-              {user.isPremium ? (
+              {user.ispremium ? (
                 <div className="flex gap-2">
                    <button 
                     onClick={() => {
                       const days = prompt("Nombre de jours à ajouter ?", "30");
                       if (days) {
-                        const current = user.premiumUntil ? new Date(user.premiumUntil) : new Date();
+                        const current = user.premiumuntil ? new Date(user.premiumuntil) : new Date();
                         const next = new Date(current.getTime() + parseInt(days) * 24 * 60 * 60 * 1000).toISOString();
                         onUpdateStatus(user.uid, next);
                       }
@@ -3423,7 +3432,7 @@ const PremiumUserList = ({ onUpgrade, onUpdateStatus }: { onUpgrade: (uid: strin
                   </button>
                   <button 
                     onClick={() => {
-                      if(confirm(`Bloquer l'accès premium de ${user.displayName} ?`)) {
+                      if(confirm(`Bloquer l'accès premium de ${user.displayname} ?`)) {
                         onUpdateStatus(user.uid, null);
                       }
                     }}

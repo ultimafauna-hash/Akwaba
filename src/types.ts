@@ -22,72 +22,71 @@ export interface Article {
   category: string;
   image?: string;
   video?: string;
-  audioUrl?: string; // Podcast/Audio support
+  audiourl?: string; // Podcast/Audio support
   gallery?: string[]; // Multiple photos
   author: string;
-  authorRole?: string;
+  authorrole?: string;
   excerpt: string;
   content: string;
-  readingTime: string;
-  imageCredit?: string;
+  readingtime: string;
+  imagecredit?: string;
   source?: string;
   views: number;
   likes: number;
   reactions?: Record<string, number>; // Emoji reactions
-  commentsCount?: number;
+  commentscount?: number;
   tags?: string[];
   status: 'draft' | 'published';
-  isPremium?: boolean;
-  premiumPreviewSelection?: 'auto' | 'manual';
-  manualPreview?: string;
-  scheduledAt?: string;
+  ispremium?: boolean;
+  premiumpreviewselection?: 'auto' | 'manual';
+  manualpreview?: string;
+  scheduledat?: string;
   // SEO & Social
-  seoTitle?: string;
-  seoDescription?: string;
-  socialImage?: string;
+  seotitle?: string;
+  seodescription?: string;
+  socialimage?: string;
 }
 
 export interface Comment {
   id: string;
-  userId?: string;
-  userPhoto?: string;
+  userid?: string;
+  userphoto?: string;
   username: string;
   date: string;
   content: string;
   likes: number;
-  likedBy?: string[]; // Array of user IDs who liked
-  replies: Comment[];
-  articleId: string;
-  reportedBy?: string[]; // Array of user IDs who reported
-  isReported?: boolean;
+  likedby?: string[]; // Array of user IDs who liked
+  articleid: string;
+  reportedby?: string[]; // Array of user IDs who reported
+  isreported?: boolean;
 }
 
 export interface UserProfile {
   uid: string;
-  displayName: string;
+  displayname: string;
   email: string;
-  photoURL: string;
+  photourl: string;
   role: 'user' | 'editor' | 'admin';
-  likedArticles: string[];
-  bookmarkedArticles: string[];
-  followedAuthors: string[];
-  followedCategories: string[];
-  votedPolls: string[];
+  likedarticles: string[];
+  bookmarkedarticles: string[];
+  followedauthors: string[];
+  followedcategories: string[];
+  votedpolls: string[];
   badges: string[];
   points: number;
-  isPremium?: boolean;
-  premiumSince?: string;
-  premiumUntil?: string; // ISO date string
-  paymentMethod?: string;
-  history?: { articleId: string; date: string }[];
+  ispremium?: boolean;
+  premiumsince?: string;
+  premiumuntil?: string; // ISO date string
+  paymentmethod?: string;
+  history?: { articleid: string; date: string }[];
 }
 
 export interface ChatMessage {
   id: string;
-  articleId: string;
-  userId: string;
-  userName: string;
-  userPhoto?: string;
+  articleid: string;
+  userid: string;
+  username: string;
+  userphoto?: string;
   content: string;
   date: string;
 }
@@ -100,13 +99,13 @@ export interface Event {
   location: string;
   category: string;
   image?: string;
-  imageCredit?: string;
+  imagecredit?: string;
   gallery?: string[];
   video?: string;
   excerpt: string;
   content: string;
   status: 'draft' | 'published';
-  scheduledAt?: string;
+  scheduledat?: string;
 }
 
 export interface Poll {
@@ -117,8 +116,8 @@ export interface Poll {
     text: string;
     votes: number;
   }[];
-  startDate: string;
-  endDate?: string;
+  startdate: string;
+  enddate?: string;
   active: boolean;
 }
 
@@ -138,10 +137,10 @@ export interface SiteSettings {
   adSlotSidebar?: string;
   adSlotFooter?: string;
   // Breaking News
-  urgentBannerText?: string;
-  urgentBannerActive?: boolean;
-  urgentBannerLink?: string;
-  flashNews?: string; // Semicolon separated news for ticker
+  urgentbannertext?: string;
+  urgentbanneractive?: boolean;
+  urgentbannerlink?: string;
+  flashnews?: string; // Semicolon separated news for ticker
   // Categories
   categories: string[];
   categories_icons?: Record<string, string>;
@@ -151,9 +150,9 @@ export interface SiteSettings {
   donationAmounts: number[];
   donationPaymentMethods: string[];
   premiumPrice: number;
-  isDonationActive: boolean;
-  isPremiumActive: boolean;
-  activePaymentMethods: {
+  isdonationactive: boolean;
+  ispremiumactive: boolean;
+  activepaymentmethods: {
     paypal?: boolean;
     stripe?: boolean;
     flutterwave?: boolean;
@@ -162,7 +161,7 @@ export interface SiteSettings {
     moov?: boolean;
     wave?: boolean;
   };
-  paymentLinks?: {
+  paymentlinks?: {
     paypal?: string;
     stripe?: string;
     flutterwave?: string;
@@ -171,7 +170,7 @@ export interface SiteSettings {
     moov?: string;
     wave?: string;
   };
-  premiumDurationMonths?: number;
+  premiumduration?: number;
   paypalId?: string;
   stripePublicKey?: string;
   flutterwavePublicKey?: string;
@@ -192,16 +191,16 @@ export interface MediaAsset {
   url: string;
   type: 'image' | 'video';
   date: string;
-  fileName?: string;
+  filename?: string;
 }
 
 export interface LiveBlog {
   id: string;
-  articleId: string; // Linked to article if it's a "Live" article
+  articleid: string; // Linked to article if it's a "Live" article
   title: string;
   updates: LiveUpdate[];
   status: 'live' | 'ended';
-  createdAt: string;
+  createdat: string;
 }
 
 export interface LiveUpdate {
@@ -209,8 +208,8 @@ export interface LiveUpdate {
   content: string;
   date: string;
   type: 'info' | 'urgent' | 'media';
-  imageUrl?: string;
-  videoUrl?: string;
+  imageurl?: string;
+  videourl?: string;
   author: string;
 }
 
@@ -218,12 +217,12 @@ export interface WebTV {
   id: string;
   title: string;
   description: string;
-  videoUrl: string;
+  videourl: string;
   thumbnail: string;
   category: string;
   date: string;
   views: number;
-  isPremium?: boolean;
+  ispremium?: boolean;
 }
 
 export interface Classified {
@@ -234,8 +233,8 @@ export interface Classified {
   category: 'emploi' | 'immobilier' | 'véhicules' | 'services' | 'divers';
   location: string;
   contact: string;
-  imageUrl?: string;
-  userId: string;
+  imageurl?: string;
+  userid: string;
   username: string;
   date: string;
   status: 'active' | 'sold' | 'expired';
@@ -247,7 +246,7 @@ export interface SiteStats {
 
 export interface AppNotification {
   id: string;
-  userId?: string;
+  userid?: string;
   topic?: string;
   title: string;
   message: string;
@@ -259,10 +258,10 @@ export interface AppNotification {
 
 export interface SupportMessage {
   id: string;
-  userId: string;
-  userName: string;
-  userPhoto?: string;
+  userid: string;
+  username: string;
+  userphoto?: string;
   content: string;
   date: string;
-  isAdmin: boolean;
+  isadmin: boolean;
 }

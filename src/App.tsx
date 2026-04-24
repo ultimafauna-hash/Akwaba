@@ -533,13 +533,14 @@ const UserProfileView = ({
            <User size={120} />
         </div>
         <img 
-          src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}`} 
+          src={user.photourl || `https://ui-avatars.com/api/?name=${user.displayname || 'User'}`} 
           className="w-32 h-32 rounded-full border-4 border-primary shadow-xl object-cover aspect-square"
+          referrerPolicy="no-referrer"
         />
         <div className="text-center md:text-left space-y-2">
            <div className="flex items-center justify-center md:justify-start gap-3">
-              <h2 className="text-3xl font-black">{user.displayName || 'Utilisateur Akwaba'}</h2>
-              {user.isPremium && (
+              <h2 className="text-3xl font-black">{user.displayname || 'Utilisateur Akwaba'}</h2>
+              {user.ispremium && (
                 <div className="px-3 py-1 bg-amber-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
                    <Lock size={10} fill="white" /> PREMIUM
                 </div>
@@ -562,7 +563,7 @@ const UserProfileView = ({
           </div>
         </div>
         <div className="md:ml-auto flex flex-col gap-3 w-full md:w-auto">
-          {!user.isPremium && (
+          {!user.ispremium && (
             <button 
               onClick={onUpgrade}
               className="flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white rounded-2xl font-black shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all text-xs uppercase tracking-widest"
@@ -745,32 +746,42 @@ const EventCard = ({ event, onClick }: { event: Event, onClick: (e: Event) => vo
   return (
     <div 
       onClick={() => onClick(event)}
-      className="bg-white rounded-[24px] overflow-hidden shadow-sm border border-slate-100 cursor-pointer group hover:shadow-xl transition-all duration-300 h-full flex flex-col"
+      className="bg-white rounded-[2rem] overflow-hidden shadow-lg border border-slate-100 cursor-pointer group hover:shadow-2xl transition-all duration-500 h-full flex flex-col group"
     >
-      <div className="relative h-[220px] overflow-hidden bg-slate-50">
+      <div className="relative h-56 overflow-hidden bg-slate-50">
         {event.image && (
           <img 
             src={optimizeImage(event.image, 600)} 
             alt={event.title} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+            className="w-full h-full object-cover object-[center_top] transition-transform duration-700 group-hover:scale-110" 
             referrerPolicy="no-referrer"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors" />
       </div>
-      <div className="p-6 flex flex-col flex-1 space-y-4">
-        <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest">
-           <span>{getCategoryEmoji(event.category)}</span> {event.category}
+      <div className="p-8 flex flex-col flex-1 space-y-5">
+        <div>
+          <span className="bg-slate-100 text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+            {event.category}
+          </span>
         </div>
-        <h3 className="font-black text-xl text-slate-800 leading-tight group-hover:text-primary transition-colors line-clamp-2 min-h-[3.5rem]">
-          {event.title}
+        
+        <h3 className="font-black text-2xl text-slate-900 leading-tight group-hover:text-primary transition-colors flex items-start justify-between gap-2">
+          <span className="line-clamp-2">{event.title}</span>
+          <div className="p-2 bg-slate-900 text-white rounded-full opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all shrink-0">
+             <ArrowRight size={16} />
+          </div>
         </h3>
-        <div className="flex items-start gap-2 text-sm text-slate-500 font-medium italic">
-          <Map size={16} className="text-primary mt-1 flex-shrink-0" />
-          <span className="line-clamp-2">{event.location}</span>
-        </div>
-        <div className="mt-auto pt-4 flex items-center gap-2 text-primary font-black text-[10px] uppercase tracking-widest group/btn">
-          Voir l'événement <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+
+        <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-500 mt-auto">
+          <div className="flex items-center gap-2">
+            <Calendar size={16} className="text-primary" />
+            <span>{safeFormatDate(event.date, 'dd MMM')} <span className="mx-1 opacity-30">|</span> {safeFormatDate(event.date, 'HH:mm')}</span>
+          </div>
+          <div className="flex items-center gap-2 max-w-[50%]">
+            <MapPin size={16} className="text-primary" />
+            <span className="truncate">{event.location}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -793,69 +804,77 @@ const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onE
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const totalPages = Math.ceil(events.length / itemsPerPage);
+  const totalItems = events.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  const next = () => setCurrentIndex((prev) => (prev + 1) % totalPages);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + totalPages) % totalPages);
+  const next = () => {
+    setCurrentIndex((prev) => (prev + 1) % totalItems);
+  };
+
+  const prev = () => {
+    setCurrentIndex((prev) => (prev - 1 + totalItems) % totalItems);
+  };
 
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || totalItems === 0) return;
     const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
-  }, [totalPages, isPaused]);
+  }, [totalItems, isPaused, itemsPerPage]);
 
   return (
     <section 
-      className="py-16 border-t border-slate-100 overflow-hidden"
+      className="py-16 border-t border-slate-100 overflow-hidden bg-white"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="flex items-center justify-between mb-10 max-w-7xl mx-auto px-4">
-        <div>
-           <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-1 bg-primary rounded-full" />
-              <span className="text-primary font-black text-[10px] uppercase tracking-[0.2em]">Agenda Culturel</span>
-           </div>
-          <h2 className="font-black text-3xl md:text-5xl italic tracking-tighter uppercase">À ne pas <span className="text-primary">manquer</span></h2>
-        </div>
-        <div className="flex items-center gap-4">
-           <div className="hidden md:flex gap-2">
-              <button 
-                onClick={prev} 
-                className="p-3 rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-primary hover:border-primary hover:text-white transition-all shadow-sm active:scale-95"
-                aria-label="Précédent"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <button 
-                onClick={next} 
-                className="p-3 rounded-full bg-white border border-slate-200 text-slate-400 hover:bg-primary hover:border-primary hover:text-white transition-all shadow-sm active:scale-95"
-                aria-label="Suivant"
-              >
-                <ChevronRight size={20} />
-              </button>
-           </div>
-           <button 
-             onClick={onSeeAll}
-             className="h-12 bg-slate-900 hover:bg-primary text-white px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-slate-900/10 active:scale-95"
-           >
-             Voir l'Agenda Complet
-           </button>
+      <div className="max-w-7xl mx-auto px-4 mb-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-4">
+             <div className="flex items-center gap-3">
+                <div className="w-12 h-1 bg-primary rounded-full" />
+                <span className="text-secondary font-black text-[10px] uppercase tracking-[0.3em]">Événements Immédiats</span>
+             </div>
+             <h2 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-none">
+               L'Agenda <br/> <span className="text-primary">Culturel</span>
+             </h2>
+          </div>
+          <div className="flex items-center gap-4">
+             <div className="flex gap-2">
+                <button 
+                  onClick={prev} 
+                  className="w-14 h-14 rounded-full bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all flex items-center justify-center border border-slate-100 shadow-sm active:scale-95"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button 
+                  onClick={next} 
+                  className="w-14 h-14 rounded-full bg-slate-50 text-slate-400 hover:bg-primary hover:text-white transition-all flex items-center justify-center border border-slate-100 shadow-sm active:scale-95"
+                >
+                  <ChevronRight size={24} />
+                </button>
+             </div>
+             <button 
+               onClick={onSeeAll}
+               className="h-14 bg-slate-900 hover:bg-primary text-white px-10 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-xl active:scale-95 hidden sm:block"
+             >
+               Explorer Tout
+             </button>
+          </div>
         </div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-1">
-        <div className="overflow-visible">
+      <div className="relative px-4">
+        <div className="max-w-7xl mx-auto overflow-visible relative">
           <motion.div 
-            animate={{ x: `-${currentIndex * 100}%` }}
-            transition={{ type: "spring", damping: 30, stiffness: 100 }}
+            animate={{ x: `-${currentIndex * (100 / itemsPerPage)}%` }}
+            transition={{ type: "spring", damping: 25, stiffness: 80 }}
             className="flex"
           >
             {events.map((event) => (
               <div 
                 key={event.id}
                 className={cn(
-                  "flex-shrink-0 px-3",
+                  "flex-shrink-0 px-3 transition-opacity duration-300",
                   itemsPerPage === 3 ? "w-1/3" : itemsPerPage === 2 ? "w-1/2" : "w-full"
                 )}
               >
@@ -864,20 +883,19 @@ const EventSection = ({ events, onEventClick, onSeeAll }: { events: Event[], onE
             ))}
           </motion.div>
         </div>
-        
-        {/* Mobile Navigation Indicators */}
-        <div className="flex justify-center gap-2 mt-10 md:hidden">
-           {[...Array(totalPages)].map((_, i) => (
-             <button
-               key={i}
-               onClick={() => setCurrentIndex(i)}
-               className={cn(
-                 "h-1.5 rounded-full transition-all",
-                 currentIndex === i ? "w-8 bg-primary" : "w-3 bg-slate-200"
-               )}
-             />
-           ))}
-        </div>
+      </div>
+      
+      <div className="flex justify-center gap-3 mt-16 max-w-7xl mx-auto px-4">
+         {Array.from({ length: totalItems }).map((_, i) => (
+           <button
+             key={i}
+             onClick={() => setCurrentIndex(i)}
+             className={cn(
+               "h-2 rounded-full transition-all duration-500",
+               currentIndex === i ? "w-12 bg-primary" : "w-2 bg-slate-100 hover:bg-slate-200"
+             )}
+           />
+         ))}
       </div>
     </section>
   );
@@ -1949,8 +1967,8 @@ const RecommendedForYou = ({ articles, history, onArticleClick, onAuthorClick }:
                <div className="space-y-1">
                   <Badge category={a.category}>{a.category}</Badge>
                   <h5 className="font-bold text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">{a.title}</h5>
-               </div>
-            </div>
+                </div>
+             </div>
           ))}
        </div>
     </div>
@@ -1964,7 +1982,9 @@ const PostClassifiedModal = ({ onClose, onPost }: { onClose: () => void, onPost:
     price: '',
     category: 'emploi',
     location: '',
-    imageUrl: ''
+    imageurl: '', // Normalized
+    contact: '',
+    contactMethod: 'email' as 'email' | 'phone'
   });
 
   return (
@@ -1996,7 +2016,7 @@ const PostClassifiedModal = ({ onClose, onPost }: { onClose: () => void, onPost:
             <select 
               className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-4 outline-none focus:ring-2 focus:ring-primary/20 text-xs"
               value={formData.category}
-              onChange={e => setFormData({...formData, category: e.target.value})}
+              onChange={e => setFormData({...formData, category: e.target.value as any})}
             >
               <option value="emploi">Emploi</option>
               <option value="immobilier">Immobilier</option>
@@ -2023,9 +2043,41 @@ const PostClassifiedModal = ({ onClose, onPost }: { onClose: () => void, onPost:
             type="text" 
             placeholder="URL de l'image"
             className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-primary/20 text-xs"
-            value={formData.imageUrl}
-            onChange={e => setFormData({...formData, imageUrl: e.target.value})}
+            value={formData.imageurl}
+            onChange={e => setFormData({...formData, imageurl: e.target.value})}
           />
+          
+          <div className="space-y-3">
+             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Moyen de contact préféré</label>
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setFormData({...formData, contactMethod: 'email'})}
+                  className={cn(
+                    "flex-1 py-3 rounded-xl border-2 text-[10px] font-black transition-all",
+                    formData.contactMethod === 'email' ? "border-primary bg-primary/5 text-primary" : "border-slate-100 text-slate-400"
+                  )}
+                >
+                  📧 EMAIL
+                </button>
+                <button 
+                  onClick={() => setFormData({...formData, contactMethod: 'phone'})}
+                  className={cn(
+                    "flex-1 py-3 rounded-xl border-2 text-[10px] font-black transition-all",
+                    formData.contactMethod === 'phone' ? "border-primary bg-primary/5 text-primary" : "border-slate-100 text-slate-400"
+                  )}
+                >
+                  📱 TÉLÉPHONE
+                </button>
+             </div>
+             <input 
+                type={formData.contactMethod === 'email' ? 'email' : 'tel'} 
+                placeholder={formData.contactMethod === 'email' ? "Votre email de contact" : "Votre numéro (ex: +225...)"}
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-primary/20 text-xs"
+                value={formData.contact}
+                onChange={e => setFormData({...formData, contact: e.target.value})}
+             />
+          </div>
+
           <textarea 
             placeholder="Description détaillée..."
             className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-primary/20 h-32 resize-none text-xs"
@@ -2289,6 +2341,28 @@ export default function App() {
     "GBP/XOF": 774.20,
     "NGN/XOF": 0.42
   });
+
+  useEffect(() => {
+    const fetchRates = async () => {
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/EUR');
+        const data = await res.json();
+        if (data && data.rates && data.rates.XOF) {
+          setExchangeRates({
+            'EUR/XOF': data.rates.XOF.toFixed(2),
+            'USD/XOF': (data.rates.XOF / data.rates.USD).toFixed(2),
+            'GBP/XOF': (data.rates.XOF / data.rates.GBP).toFixed(2),
+            'NGN/XOF': (data.rates.XOF / data.rates.NGN).toFixed(2)
+          });
+        }
+      } catch (e) {
+        console.error("Exchange rate fetch error:", e);
+      }
+    };
+    fetchRates();
+    const interval = setInterval(fetchRates, 3600000);
+    return () => clearInterval(interval);
+  }, []);
   const [activePoll, setActivePoll] = useState<Poll | null>({
     id: 'poll-1',
     question: "Pensez-vous que la technologie peut transformer l'éducation en Afrique ?",
@@ -2383,19 +2457,19 @@ export default function App() {
     await SupabaseService.markNotificationAsRead(id);
   };
 
-  const handlePostClassified = async (data: Partial<Classified>) => {
+  const handlePostClassified = async (data: any) => {
     if (!currentUser) return;
     const newAd: Classified = {
       id: Date.now().toString(),
-      userId: currentUser.uid,
-      username: currentUser.displayName || 'Anonyme',
+      userid: currentUser.uid,
+      username: currentUser.displayname || 'Anonyme',
       title: data.title || '',
       description: data.description || '',
       price: data.price,
       category: data.category as any || 'divers',
       location: data.location || '',
-      contact: currentUser.email || 'N/A',
-      imageUrl: data.imageUrl,
+      contact: data.contact || currentUser.email || 'N/A',
+      imageurl: data.imageurl,
       date: new Date().toISOString(),
       status: 'active'
     };
@@ -2408,13 +2482,21 @@ export default function App() {
       setTimeout(() => setActiveNotification(null), 3000);
     } catch (e) {
       console.error(e);
-      setActiveNotification("Erreur lors de la publication.");
+      alert("Erreur lors de la publication de l'annonce.");
     }
   };
 
   const handleVote = async (optionId: string) => {
-    if (!activePoll || hasVoted || !currentUser) {
+    if (!activePoll || !currentUser) {
       if (!currentUser) handleUserLogin();
+      return;
+    }
+
+    // Check if user has already voted
+    const profile = await SupabaseService.getUserProfile(currentUser.uid);
+    if (profile && profile.votedpolls?.includes(activePoll.id)) {
+      alert("Vous avez déjà voté pour ce sondage.");
+      setHasVoted(true);
       return;
     }
     
@@ -2518,23 +2600,23 @@ export default function App() {
             
             setCurrentUser(prev => ({ 
               ...prev, 
-              isPremium: isActuallyPremium,
-              premiumUntil: profile.premiumUntil,
-              paymentMethod: profile.paymentMethod,
+              ispremium: isActuallyPremium,
+              premiumuntil: profile.premiumuntil,
+              paymentmethod: profile.paymentmethod,
               points: profile.points || 0,
               badges: profile.badges || [],
               history: profile.history || [],
-              likedArticles: profile.likedArticles || [],
-              bookmarkedArticles: profile.bookmarkedArticles || [],
-              followedAuthors: profile.followedAuthors || [],
-              followedCategories: profile.followedCategories || []
+              likedarticles: profile.likedarticles || [],
+              bookmarkedarticles: profile.bookmarkedarticles || [],
+              followedauthors: profile.followedauthors || [],
+              followedcategories: profile.followedcategories || []
             }));
 
             setUserPoints(profile.points || 0);
             setUserBadges(profile.badges || []);
-            setUserBookmarkedArticles(new Set(profile.bookmarkedArticles || []));
-            setUserFollowedAuthors(new Set(profile.followedAuthors || []));
-            setUserFollowedCategories(new Set(profile.followedCategories || []));
+            setUserBookmarkedArticles(new Set(profile.bookmarkedarticles || []));
+            setUserFollowedAuthors(new Set(profile.followedauthors || []));
+            setUserFollowedCategories(new Set(profile.followedcategories || []));
           }
         } catch (e) {
           console.error("Profile sync error:", e);
@@ -3530,6 +3612,9 @@ export default function App() {
     // Increment views
     try {
       await SupabaseService.incrementArticleViews(article.id);
+      if (currentUser) {
+        await SupabaseService.addToReadingHistory(currentUser.uid, article.id);
+      }
     } catch (e) {
       console.warn("View counter error", e);
     }
@@ -4093,12 +4178,13 @@ export default function App() {
               <div className="flex items-center gap-1 md:gap-2">
                 <div onClick={() => navigateTo('profile')} className="relative group cursor-pointer" title="Mon Profil">
                   <img 
-                    src={currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName || 'User'}`} 
+                    src={currentUser.photourl || `https://ui-avatars.com/api/?name=${currentUser.displayname || 'User'}`} 
                     alt="User Profile" 
                     className={cn(
                       "w-8 h-8 md:w-10 md:h-10 rounded-full border-2 transition-colors object-cover aspect-square",
                       currentView === 'profile' ? "border-primary" : "border-primary/20 hover:border-primary"
                     )}
+                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full border-2 border-white" />
                 </div>
@@ -5671,7 +5757,7 @@ Dernière mise à jour : Avril 2026
                   onCreatePoll={() => setEditingPoll({ id: crypto.randomUUID(), startDate: new Date().toISOString().split('T')[0], options: [{id: '1', text: '', votes: 0}, {id: '2', text: '', votes: 0}], active: true } as any)}
                   onCreateLiveBlog={() => setEditingLiveBlog({ id: crypto.randomUUID(), title: '', updates: [], status: 'live', createdAt: new Date().toISOString() } as any)}
                   onCreateWebTV={() => setEditingWebTV({ id: crypto.randomUUID(), title: '', description: '', videoUrl: '', thumbnail: '', category: 'Web TV', date: new Date().toISOString(), views: 0 } as any)}
-                  onCreateClassified={() => setEditingClassified({ id: crypto.randomUUID(), title: '', description: '', category: 'divers', location: '', contact: '', date: new Date().toISOString(), status: 'active', userId: currentUser?.uid || 'admin', username: currentUser?.displayName || 'Admin' } as any)}
+                  onCreateClassified={() => setEditingClassified({ id: crypto.randomUUID(), title: '', description: '', category: 'divers', location: '', contact: '', date: new Date().toISOString(), status: 'active', userid: currentUser?.uid || 'admin', username: currentUser?.displayname || 'Admin' } as any)}
                   onDeleteArticle={handleDeleteArticle}
                   onDeleteEvent={handleDeleteEvent}
                   onDeletePoll={handleDeletePoll}
@@ -5688,6 +5774,8 @@ Dernière mise à jour : Avril 2026
                   onGenerateCode={() => setShowExportModal(true)}
                   setActiveNotification={setActiveNotification}
                   stats={adminStats}
+                  currentUser={currentUser}
+                  onSaveSettings={handleSaveSettings}
                 />
               )
             ) : (

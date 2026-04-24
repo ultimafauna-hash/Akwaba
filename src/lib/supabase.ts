@@ -69,11 +69,17 @@ export const SupabaseService = {
     };
 
     if (cleanArticle.date) cleanArticle.date = sanitizeDate(cleanArticle.date) || new Date().toISOString();
-    if (cleanArticle.scheduledAt) cleanArticle.scheduledAt = sanitizeDate(cleanArticle.scheduledAt);
+    if (cleanArticle.scheduledat) cleanArticle.scheduledat = sanitizeDate(cleanArticle.scheduledat);
+
+    // Ensure all keys are lowercase for Postgres
+    const finalArticle: any = {};
+    Object.entries(cleanArticle).forEach(([key, value]) => {
+      finalArticle[key.toLowerCase()] = value;
+    });
 
     const { error } = await supabase
       .from('articles')
-      .upsert(cleanArticle);
+      .upsert(finalArticle);
     
     if (error) throw error;
   },
@@ -99,11 +105,17 @@ export const SupabaseService = {
       return isNaN(dateTest.getTime()) ? null : dateTest.toISOString();
     };
 
-    if (cleanEvent.scheduledAt) cleanEvent.scheduledAt = sanitizeDate(cleanEvent.scheduledAt);
+    if (cleanEvent.scheduledat) cleanEvent.scheduledat = sanitizeDate(cleanEvent.scheduledat);
+
+    // Ensure all keys are lowercase
+    const finalEvent: any = {};
+    Object.entries(cleanEvent).forEach(([key, value]) => {
+      finalEvent[key.toLowerCase()] = value;
+    });
 
     const { error } = await supabase
       .from('events')
-      .upsert(cleanEvent);
+      .upsert(finalEvent);
     if (error) throw error;
   },
 
@@ -154,9 +166,13 @@ export const SupabaseService = {
 
   async saveSettings(settings: SiteSettings): Promise<void> {
     if (isPlaceholder) return;
+    const finalSettings: any = {};
+    Object.entries(settings).forEach(([key, value]) => {
+      finalSettings[key.toLowerCase()] = value;
+    });
     const { error } = await supabase
       .from('settings')
-      .upsert({ ...settings, id: 'global' });
+      .upsert({ ...finalSettings, id: 'global' });
     if (error) throw error;
   },
 
@@ -210,18 +226,18 @@ export const SupabaseService = {
     if (isPlaceholder) return;
     const { data: comment } = await supabase
       .from('comments')
-      .select('reportedBy')
+      .select('reportedby')
       .eq('id', commentId)
       .single();
     
     if (comment) {
-      const current = comment.reportedBy || [];
+      const current = comment.reportedby || [];
       if (!current.includes(userId)) {
         await supabase
           .from('comments')
           .update({ 
-            isReported: true, 
-            reportedBy: [...current, userId] 
+            isreported: true, 
+            reportedby: [...current, userId] 
           })
           .eq('id', commentId);
       }
@@ -232,22 +248,22 @@ export const SupabaseService = {
     if (isPlaceholder) return;
     const { data: comment } = await supabase
       .from('comments')
-      .select('likedBy')
+      .select('likedby')
       .eq('id', commentId)
       .single();
     
     if (comment) {
-      let likedBy = comment.likedBy || [];
-      if (isLiked && !likedBy.includes(userId)) {
-        likedBy.push(userId);
+      let likedby = comment.likedby || [];
+      if (isLiked && !likedby.includes(userId)) {
+        likedby.push(userId);
       } else if (!isLiked) {
-        likedBy = likedBy.filter((id: string) => id !== userId);
+        likedby = likedby.filter((id: string) => id !== userId);
       }
       await supabase
         .from('comments')
         .update({ 
-          likes: likedBy.length,
-          likedBy: likedBy 
+          likes: likedby.length,
+          likedby: likedby 
         })
         .eq('id', commentId);
     }
@@ -261,45 +277,45 @@ export const SupabaseService = {
       await supabase.from('articles').update({ likes: (article.likes || 0) + (isLiked ? 1 : -1) }).eq('id', articleId);
     }
 
-    const { data: profile } = await supabase.from('profiles').select('likedArticles').eq('uid', userId).single();
+    const { data: profile } = await supabase.from('profiles').select('likedarticles').eq('uid', userId).single();
     if (profile) {
-      let liked = profile.likedArticles || [];
+      let liked = profile.likedarticles || [];
       if (isLiked && !liked.includes(articleId)) liked.push(articleId);
       else if (!isLiked) liked = liked.filter((id: string) => id !== articleId);
-      await supabase.from('profiles').update({ likedArticles: liked }).eq('uid', userId);
+      await supabase.from('profiles').update({ likedarticles: liked }).eq('uid', userId);
     }
   },
 
   async bookmarkArticle(articleId: string, userId: string, isBookmarked: boolean): Promise<void> {
     if (isPlaceholder) return;
-    const { data: profile } = await supabase.from('profiles').select('bookmarkedArticles').eq('uid', userId).single();
+    const { data: profile } = await supabase.from('profiles').select('bookmarkedarticles').eq('uid', userId).single();
     if (profile) {
-      let bookmarked = profile.bookmarkedArticles || [];
+      let bookmarked = profile.bookmarkedarticles || [];
       if (isBookmarked && !bookmarked.includes(articleId)) bookmarked.push(articleId);
       else if (!isBookmarked) bookmarked = bookmarked.filter((id: string) => id !== articleId);
-      await supabase.from('profiles').update({ bookmarkedArticles: bookmarked }).eq('uid', userId);
+      await supabase.from('profiles').update({ bookmarkedarticles: bookmarked }).eq('uid', userId);
     }
   },
 
   async followAuthor(authorName: string, userId: string, isFollowing: boolean): Promise<void> {
     if (isPlaceholder) return;
-    const { data: profile } = await supabase.from('profiles').select('followedAuthors').eq('uid', userId).single();
+    const { data: profile } = await supabase.from('profiles').select('followedauthors').eq('uid', userId).single();
     if (profile) {
-      let followed = profile.followedAuthors || [];
+      let followed = profile.followedauthors || [];
       if (isFollowing && !followed.includes(authorName)) followed.push(authorName);
       else if (!isFollowing) followed = followed.filter((name: string) => name !== authorName);
-      await supabase.from('profiles').update({ followedAuthors: followed }).eq('uid', userId);
+      await supabase.from('profiles').update({ followedauthors: followed }).eq('uid', userId);
     }
   },
 
   async followCategory(category: string, userId: string, isFollowing: boolean): Promise<void> {
     if (isPlaceholder) return;
-    const { data: profile } = await supabase.from('profiles').select('followedCategories').eq('uid', userId).single();
+    const { data: profile } = await supabase.from('profiles').select('followedcategories').eq('uid', userId).single();
     if (profile) {
-      let followed = profile.followedCategories || [];
+      let followed = profile.followedcategories || [];
       if (isFollowing && !followed.includes(category)) followed.push(category);
       else if (!isFollowing) followed = followed.filter((cat: string) => cat !== category);
-      await supabase.from('profiles').update({ followedCategories: followed }).eq('uid', userId);
+      await supabase.from('profiles').update({ followedcategories: followed }).eq('uid', userId);
     }
   },
 
@@ -330,7 +346,7 @@ export const SupabaseService = {
     const { data, error } = await supabase
       .from('polls')
       .select('*')
-      .order('startDate', { ascending: false });
+      .order('startdate', { ascending: false });
     if (error) return [];
     return data as Poll[];
   },
@@ -363,11 +379,11 @@ export const SupabaseService = {
       );
       await supabase.from('polls').update({ options }).eq('id', pollId);
 
-      const { data: profile } = await supabase.from('profiles').select('votedPolls').eq('uid', userId).single();
+      const { data: profile } = await supabase.from('profiles').select('votedpolls').eq('uid', userId).single();
       if (profile) {
-        const voted = profile.votedPolls || [];
+        const voted = profile.votedpolls || [];
         if (!voted.includes(pollId)) {
-          await supabase.from('profiles').update({ votedPolls: [...voted, pollId] }).eq('uid', userId);
+          await supabase.from('profiles').update({ votedpolls: [...voted, pollId] }).eq('uid', userId);
         }
       }
     }
@@ -530,13 +546,17 @@ export const SupabaseService = {
   },
 
   // Notifications
-  subscribeToNotifications(userId: string, callback: (notifs: AppNotification[]) => void) {
+  async subscribeToNotifications(userId: string, callback: (notifs: AppNotification[]) => void) {
     if (isPlaceholder) return () => {};
     this.getNotifications(userId).then(callback);
     const channel = supabase
       .channel('public:notifications')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
-        this.getNotifications(userId).then(callback);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload: any) => {
+        // If it's for this user or global
+        const notif = payload.new;
+        if (notif.userid === userId || notif.userid === 'global') {
+           this.getNotifications(userId).then(callback);
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -547,7 +567,7 @@ export const SupabaseService = {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
-      .or(`userId.eq.${userId},userId.eq.global`)
+      .or(`userid.eq.${userId},userid.eq.global`)
       .order('date', { ascending: false });
     if (error) return [];
     return data as AppNotification[];
@@ -571,12 +591,12 @@ export const SupabaseService = {
 
   subscribeToChat(articleId: string, callback: (messages: any[]) => void) {
     if (isPlaceholder) return () => {};
-    supabase.from('chats').select('*').eq('articleId', articleId).order('date', { ascending: true })
+    supabase.from('chats').select('*').eq('articleid', articleId).order('date', { ascending: true })
       .then(({ data }) => callback(data || []));
     const channel = supabase
       .channel(`chat:${articleId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chats', filter: `articleId=eq.${articleId}` }, () => {
-        supabase.from('chats').select('*').eq('articleId', articleId).order('date', { ascending: true })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chats', filter: `articleid=eq.${articleId}` }, () => {
+        supabase.from('chats').select('*').eq('articleid', articleId).order('date', { ascending: true })
           .then(({ data }) => callback(data || []));
       })
       .subscribe();
@@ -585,7 +605,7 @@ export const SupabaseService = {
 
   async getLiveBlogs(): Promise<LiveBlog[]> {
     if (isPlaceholder) return [];
-    const { data, error } = await supabase.from('live_blogs').select('*').order('createdAt', { ascending: false });
+    const { data, error } = await supabase.from('live_blogs').select('*').order('createdat', { ascending: false });
     if (error) return [];
     return data as LiveBlog[];
   },
@@ -664,11 +684,11 @@ export const SupabaseService = {
 
   subscribeToSupportMessages(userId: string, callback: (messages: SupportMessage[]) => void) {
     if (isPlaceholder) return () => {};
-    supabase.from('support_messages').select('*').eq('userId', userId).order('date', { ascending: true })
+    supabase.from('support_messages').select('*').eq('userid', userId).order('date', { ascending: true })
       .then(({ data }) => callback(data as SupportMessage[] || []));
     const channel = supabase.channel(`support:${userId}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `userId=eq.${userId}` }, () => {
-        supabase.from('support_messages').select('*').eq('userId', userId).order('date', { ascending: true })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `userid=eq.${userId}` }, () => {
+        supabase.from('support_messages').select('*').eq('userid', userId).order('date', { ascending: true })
           .then(({ data }) => callback(data as SupportMessage[] || []));
       })
       .subscribe();
@@ -679,8 +699,8 @@ export const SupabaseService = {
     if (isPlaceholder) return () => {};
     const channel = supabase.channel('support:all')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, (payload) => {
-        const userId = payload.new.userId;
-        supabase.from('support_messages').select('*').eq('userId', userId).order('date', { ascending: true })
+        const userId = payload.new.userid;
+        supabase.from('support_messages').select('*').eq('userid', userId).order('date', { ascending: true })
           .then(({ data }) => callback(userId, data as SupportMessage[] || []));
       })
       .subscribe();
@@ -753,18 +773,18 @@ export const SupabaseService = {
     const now = new Date();
     const until = new Date(new Date().setMonth(now.getMonth() + months)).toISOString();
     await this.updateUserProfile(userId, { 
-      isPremium: true, 
-      premiumSince: new Date().toISOString(),
-      premiumUntil: until, 
-      paymentMethod: method 
+      ispremium: true, 
+      premiumsince: new Date().toISOString(),
+      premiumuntil: until, 
+      paymentmethod: method 
     });
   },
 
   async setPremiumUntil(userId: string, untilDate: string | null): Promise<void> {
     if (isPlaceholder) return;
     await this.updateUserProfile(userId, { 
-      isPremium: !!untilDate, 
-      premiumUntil: untilDate || undefined 
+      ispremium: !!untilDate, 
+      premiumuntil: untilDate || null 
     });
   },
 
@@ -773,7 +793,7 @@ export const SupabaseService = {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('isPremium', true);
+      .eq('ispremium', true);
     if (error) return [];
     return data as UserProfile[];
   },
@@ -781,7 +801,7 @@ export const SupabaseService = {
   async recordTransaction(userId: string, email: string, amount: number, method: string, type: 'subscription' | 'donation', status: 'pending' | 'success' | 'failed' = 'success', transactionReference?: string): Promise<void> {
     if (isPlaceholder) return;
     const { error } = await supabase.from('transactions').insert({
-      userId,
+      userid: userId,
       email,
       amount,
       method,
@@ -1037,8 +1057,8 @@ const normalizeUser = (user: SupabaseUser | null) => {
     uid: user.id,
     id: user.id,
     email: user.email,
-    displayName: user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split('@')[0],
-    photoURL: user.user_metadata?.avatar_url || user.user_metadata?.picture || `https://ui-avatars.com/api/?name=${user.email?.split('@')[0]}`
+    displayname: user.user_metadata?.display_name || user.user_metadata?.full_name || user.email?.split('@')[0],
+    photourl: user.user_metadata?.avatar_url || user.user_metadata?.picture || `https://ui-avatars.com/api/?name=${user.email?.split('@')[0]}`
   };
 };
 
