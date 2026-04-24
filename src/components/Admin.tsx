@@ -261,8 +261,8 @@ export const PollEditor = ({ poll, onSave, onCancel }: { poll: Partial<Poll>, on
       { id: '1', text: '', votes: 0 },
       { id: '2', text: '', votes: 0 }
     ],
-    startDate: poll.startDate || new Date().toISOString().split('T')[0],
-    endDate: poll.endDate || null,
+    startdate: poll.startdate || new Date().toISOString().split('T')[0],
+    enddate: poll.enddate || null,
     active: poll.active !== undefined ? poll.active : true
   });
 
@@ -356,8 +356,8 @@ export const PollEditor = ({ poll, onSave, onCancel }: { poll: Partial<Poll>, on
             <label className="text-xs font-black uppercase tracking-widest text-slate-400 px-2 italic">Date de début</label>
             <input 
               type="date"
-              value={(formData.startDate || '').split('T')[0]}
-              onChange={(e) => setFormData({...formData, startDate: e.target.value || null})}
+              value={(formData.startdate || '').split('T')[0]}
+              onChange={(e) => setFormData({...formData, startdate: e.target.value || null})}
               className="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-sm font-bold outline-none"
             />
           </div>
@@ -527,17 +527,17 @@ export const AdminDashboard = ({
     youtubeUrl: '',
     categories: [],
     maintenanceMode: false,
-    urgentBannerActive: false,
-    urgentBannerText: '',
+    urgentbanneractive: false,
+    urgentbannertext: '',
     adSlotHeader: '',
     adSlotSidebar: '',
     donationAmounts: [1000, 2000, 5000],
     donationPaymentMethods: [],
     premiumPrice: 5000,
-    isDonationActive: false,
+    isdonationactive: false,
     ispremiumactive: false,
-    activePaymentMethods: {},
-    paymentLinks: {},
+    activepaymentmethods: {},
+    paymentlinks: {},
     orangeMoneyNumber: '',
     mtnMoneyNumber: '',
     moovMoneyNumber: '',
@@ -556,8 +556,8 @@ export const AdminDashboard = ({
         return {
           ...prev,
           ...settings,
-          activePaymentMethods: settings.activePaymentMethods || prev.activePaymentMethods || {},
-          paymentLinks: settings.paymentLinks || prev.paymentLinks || {},
+          activepaymentmethods: settings.activepaymentmethods || prev.activepaymentmethods || {},
+          paymentlinks: settings.paymentlinks || prev.paymentlinks || {},
           categories: settings.categories || prev.categories || [],
           donationAmounts: settings.donationAmounts || prev.donationAmounts || [1000, 2000, 5000]
         };
@@ -622,10 +622,10 @@ export const AdminDashboard = ({
     const adminMsg: SupportMessage = {
       id: Date.now().toString(),
       userid: activeChatUserId,
-      userName: 'Support Akwaba',
+      username: 'Support Akwaba',
       content: replyText,
       date: new Date().toISOString(),
-      isAdmin: true
+      isadmin: true
     };
     setReplyText('');
     await SupabaseService.sendSupportMessage(adminMsg);
@@ -1091,8 +1091,8 @@ export const AdminDashboard = ({
                   <div className="flex items-center gap-4 bg-red-50 p-4 rounded-2xl border border-red-100">
                     <input 
                       type="checkbox" 
-                      checked={tempSettings.urgentBannerActive}
-                      onChange={e => setTempSettings({...tempSettings, urgentBannerActive: e.target.checked})}
+                      checked={tempSettings.urgentbanneractive}
+                      onChange={e => setTempSettings({...tempSettings, urgentbanneractive: e.target.checked})}
                       className="w-6 h-6 accent-red-500"
                     />
                     <div className="flex-1 space-y-2">
@@ -1101,8 +1101,8 @@ export const AdminDashboard = ({
                         type="text" 
                         placeholder="Texte du message urgent..."
                         className="w-full bg-white rounded-xl px-4 py-3 text-sm outline-none border border-red-200"
-                        value={tempSettings.urgentBannerText}
-                        onChange={e => setTempSettings({...tempSettings, urgentBannerText: e.target.value})}
+                        value={tempSettings.urgentbannertext}
+                        onChange={e => setTempSettings({...tempSettings, urgentbannertext: e.target.value})}
                       />
                     </div>
                   </div>
@@ -1112,8 +1112,8 @@ export const AdminDashboard = ({
                     <textarea 
                       placeholder="Séparez chaque nouvelle par un point-virgule (;)"
                       className="w-full bg-white rounded-xl px-4 py-3 text-sm outline-none border border-slate-200 min-h-[100px] resize-none"
-                      value={tempSettings.flashNews}
-                      onChange={e => setTempSettings({...tempSettings, flashNews: e.target.value})}
+                      value={tempSettings.flashnews}
+                      onChange={e => setTempSettings({...tempSettings, flashnews: e.target.value})}
                     />
                     <p className="text-[9px] text-slate-400 font-bold italic">Note : Utilisez le point-virgule (;) pour séparer les différents messages qui défileront.</p>
                   </div>
@@ -1400,17 +1400,17 @@ export const AdminDashboard = ({
                       }).map(([key, label]) => (
                         <div key={key} className={cn(
                           "p-6 rounded-3xl border-2 transition-all flex flex-col gap-4",
-                          tempSettings.activePaymentMethods?.[key] ? "bg-white border-primary shadow-xl shadow-primary/5" : "bg-slate-50 border-transparent opacity-60"
+                          tempSettings.activepaymentmethods?.[key] ? "bg-white border-primary shadow-xl shadow-primary/5" : "bg-slate-50 border-transparent opacity-60"
                         )}>
                           <div className="flex items-center justify-between">
                             <label className="flex items-center gap-3 cursor-pointer">
                               <input 
                                 type="checkbox" 
-                                checked={!!tempSettings.activePaymentMethods?.[key]}
+                                checked={!!tempSettings.activepaymentmethods?.[key]}
                                 onChange={e => {
-                                  const active = { ...(tempSettings.activePaymentMethods || {}) };
+                                  const active = { ...(tempSettings.activepaymentmethods || {}) };
                                   (active as any)[key] = e.target.checked;
-                                  setTempSettings({...tempSettings, activePaymentMethods: active});
+                                  setTempSettings({...tempSettings, activepaymentmethods: active});
                                 }}
                                 className="w-6 h-6 rounded-lg accent-primary"
                               />
@@ -1418,7 +1418,7 @@ export const AdminDashboard = ({
                             </label>
                           </div>
                           
-                          {tempSettings.activePaymentMethods?.[key] && (
+                          {tempSettings.activepaymentmethods?.[key] && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                                <div className="space-y-1">
                                   <label className="text-[10px] font-black uppercase text-slate-400 px-1">Lien de redirection (Optionnel)</label>
@@ -1428,11 +1428,11 @@ export const AdminDashboard = ({
                                       type="text"
                                       placeholder="https://votre-lien-de-paiement.com/..."
                                       className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-3 text-xs font-bold outline-none focus:border-primary transition-all"
-                                      value={tempSettings.paymentLinks?.[key] || ''}
+                                      value={tempSettings.paymentlinks?.[key] || ''}
                                       onChange={e => {
-                                        const links = { ...(tempSettings.paymentLinks || {}) };
+                                        const links = { ...(tempSettings.paymentlinks || {}) };
                                         (links as any)[key] = e.target.value;
-                                        setTempSettings({...tempSettings, paymentLinks: links});
+                                        setTempSettings({...tempSettings, paymentlinks: links});
                                       }}
                                     />
                                   </div>
@@ -1490,8 +1490,8 @@ export const AdminDashboard = ({
                           </div>
                           <input 
                             type="checkbox" 
-                            checked={tempSettings.isDonationActive}
-                            onChange={e => setTempSettings({...tempSettings, isDonationActive: e.target.checked})}
+                            checked={tempSettings.isdonationactive}
+                            onChange={e => setTempSettings({...tempSettings, isdonationactive: e.target.checked})}
                             className="w-8 h-8 rounded-full accent-emerald-500 cursor-pointer"
                           />
                         </div>
@@ -1570,8 +1570,8 @@ export const AdminDashboard = ({
                             <div className="space-y-2">
                               <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Durée (Mois)</label>
                               <select 
-                                value={tempSettings.premiumDurationMonths || 1}
-                                onChange={e => setTempSettings({...tempSettings, premiumDurationMonths: parseInt(e.target.value)})}
+                                value={tempSettings.premiumduration || 1}
+                                onChange={e => setTempSettings({...tempSettings, premiumduration: parseInt(e.target.value)})}
                                 className="w-full bg-white/5 border-2 border-white/10 rounded-2xl px-6 py-4 text-xl font-black outline-none focus:border-primary transition-all appearance-none"
                               >
                                 {[1, 3, 6, 12].map(m => <option key={m} value={m} className="bg-slate-800">{m} {m === 1 ? 'Mois' : 'Mois'}</option>)}
@@ -1667,7 +1667,7 @@ export const AdminDashboard = ({
                   ) : (
                     Object.entries(allSupportMessages).map(([userid, msgs]) => {
                       const lastMsg = msgs[msgs.length - 1];
-                      const user = msgs.find(m => !m.isAdmin);
+                      const user = msgs.find(m => !m.isadmin);
                       return (
                         <div 
                           key={userid}
@@ -1683,10 +1683,10 @@ export const AdminDashboard = ({
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-center mb-1">
-                              <h4 className="font-bold text-sm truncate">{user?.userName || 'Utilisateur'}</h4>
+                              <h4 className="font-bold text-sm truncate">{user?.username || 'Utilisateur'}</h4>
                               <span className="text-[9px] text-slate-400 font-bold">{format(new Date(lastMsg.date), 'HH:mm')}</span>
                             </div>
-                            <p className="text-xs text-slate-500 truncate">{lastMsg.isAdmin ? 'Vous: ' : ''}{lastMsg.content}</p>
+                            <p className="text-xs text-slate-500 truncate">{lastMsg.isadmin ? 'Vous: ' : ''}{lastMsg.content}</p>
                           </div>
                         </div>
                       );
@@ -1701,24 +1701,24 @@ export const AdminDashboard = ({
                   <>
                     <div className="p-6 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
                       <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-black">
-                        {allSupportMessages[activeChatUserId][0]?.userName[0] || '?'}
+                        {allSupportMessages[activeChatUserId][0]?.username[0] || '?'}
                       </div>
                       <div>
-                        <h3 className="font-black text-sm">{allSupportMessages[activeChatUserId][0]?.userName}</h3>
+                        <h3 className="font-black text-sm">{allSupportMessages[activeChatUserId][0]?.username}</h3>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{activeChatUserId}</p>
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/30 african-pattern">
                       {allSupportMessages[activeChatUserId].map((msg) => (
-                        <div key={msg.id} className={cn("flex flex-col", msg.isAdmin ? "items-end" : "items-start")}>
+                        <div key={msg.id} className={cn("flex flex-col", msg.isadmin ? "items-end" : "items-start")}>
                           <div className={cn(
                             "max-w-[70%] p-5 rounded-3xl text-sm leading-relaxed shadow-sm",
-                            msg.isAdmin ? "bg-slate-900 text-white rounded-tr-none" : "bg-white text-slate-700 rounded-tl-none border border-slate-100"
+                            msg.isadmin ? "bg-slate-900 text-white rounded-tr-none" : "bg-white text-slate-700 rounded-tl-none border border-slate-100"
                           )}>
                             {msg.content}
                           </div>
                           <span className="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-widest">
-                            {msg.isAdmin ? 'Moi (Support)' : msg.userName} • {format(new Date(msg.date), 'HH:mm')}
+                            {msg.isadmin ? 'Moi (Support)' : msg.username} • {format(new Date(msg.date), 'HH:mm')}
                           </span>
                         </div>
                       ))}
@@ -2071,7 +2071,7 @@ export const AdminDashboard = ({
                               {poll.active ? "Actif" : "Terminé"}
                             </span>
                             <span>•</span>
-                            <span>Début : {poll.startDate}</span>
+                            <span>Début : {poll.startdate}</span>
                           </div>
                         </div>
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -2284,7 +2284,7 @@ export const AdminDashboard = ({
                        </span>
                     </div>
                     <div className="col-span-2 text-xs text-slate-500 font-mono">
-                      {blog.createdAt.split('T')[0]}
+                      {blog.createdat.split('T')[0]}
                     </div>
                     <div className="col-span-2 flex justify-end gap-2 pr-2">
                       <button 
@@ -2340,8 +2340,8 @@ export const AdminDashboard = ({
                   <div key={ad.id} className="grid grid-cols-12 px-6 py-4 items-center hover:bg-slate-50/50 transition-colors group">
                     <div className="col-span-6 flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 italic">
-                        {ad.imageUrl ? (
-                          <img src={ad.imageUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        {ad.imageurl ? (
+                          <img src={ad.imageurl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-300">
                              <ImagePlus size={20} />
@@ -2576,13 +2576,13 @@ export const AdminEditor = ({
         updates.excerpt = debouncedContent.slice(0, 160).replace(/[#*`]/g, '') + '...';
       }
       
-      if (!touchedFields.readingTime) {
+      if (!touchedFields.readingtime) {
         const words = debouncedContent.split(/\s+/).length;
-        updates.readingTime = `${Math.max(1, Math.round(words / 200))} min`;
+        updates.readingtime = `${Math.max(1, Math.round(words / 200))} min`;
       }
 
-      if (!touchedFields.seoDescription) {
-        updates.seoDescription = debouncedContent.slice(0, 150).replace(/[#*`]/g, '');
+      if (!touchedFields.seodescription) {
+        updates.seodescription = debouncedContent.slice(0, 150).replace(/[#*`]/g, '');
       }
 
       if (Object.keys(updates).length > 0) {
@@ -2753,8 +2753,8 @@ export const AdminEditor = ({
                      </div>
                      <input 
                       type="checkbox" 
-                      checked={formData.isPremium}
-                      onChange={e => setFormData({...formData, isPremium: e.target.checked})}
+                      checked={formData.ispremium}
+                      onChange={e => setFormData({...formData, ispremium: e.target.checked})}
                       className="w-8 h-8 rounded-full border-2 accent-primary cursor-pointer"
                     />
                    </div>
@@ -2924,10 +2924,10 @@ export const AdminEditor = ({
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Planifier pour le (Optionnel)</label>
                   <input 
                     type="datetime-local" 
-                    value={formatForInput(formData.scheduledAt, 'datetime-local')}
+                    value={formatForInput(formData.scheduledat, 'datetime-local')}
                     onChange={(e) => {
                       const sanitized = sanitizeDateInput(e.target.value);
-                      setFormData({...formData, scheduledAt: sanitized || null});
+                      setFormData({...formData, scheduledat: sanitized || null});
                     }}
                     className="w-full bg-slate-50 rounded-xl px-4 py-3 text-[10px] outline-none focus:ring-2 focus:ring-primary/10"
                   />
@@ -2973,8 +2973,8 @@ export const AdminEditor = ({
                   <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-2xl border border-amber-100">
                     <input 
                       type="checkbox" 
-                      checked={formData.isPremium}
-                      onChange={e => setFormData({...formData, isPremium: e.target.checked})}
+                      checked={formData.ispremium}
+                      onChange={e => setFormData({...formData, ispremium: e.target.checked})}
                       className="w-5 h-5 accent-amber-600"
                     />
                     <div>
@@ -3018,8 +3018,8 @@ export const AdminEditor = ({
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Rôle / Fonction</label>
                     <input 
                       type="text" 
-                      value={formData.authorRole || ''}
-                      onChange={(e) => setFormData({...formData, authorRole: e.target.value})}
+                      value={formData.authorrole || ''}
+                      onChange={(e) => setFormData({...formData, authorrole: e.target.value})}
                       className="w-full bg-slate-50 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10"
                       placeholder="Ex: Journaliste Reporter"
                     />
@@ -3054,8 +3054,8 @@ export const AdminEditor = ({
                     <Camera size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input 
                       type="text" 
-                      value={formData.imageCredit || ''}
-                      onChange={(e) => setFormData({...formData, imageCredit: e.target.value})}
+                      value={formData.imagecredit || ''}
+                      onChange={(e) => setFormData({...formData, imagecredit: e.target.value})}
                       className="w-full bg-slate-50 rounded-xl pl-9 pr-4 py-3 text-xs outline-none focus:ring-2 focus:ring-primary/10"
                       placeholder="Ex: AFP / Justin Kpatcha"
                     />
@@ -3080,8 +3080,8 @@ export const AdminEditor = ({
                     <Check size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500" />
                     <input 
                       type="text" 
-                      value={formData.audioUrl || ''}
-                      onChange={(e) => setFormData({...formData, audioUrl: e.target.value})}
+                      value={formData.audiourl || ''}
+                      onChange={(e) => setFormData({...formData, audiourl: e.target.value})}
                       className="w-full bg-slate-50 rounded-xl pl-9 pr-4 py-3 text-[10px] outline-none focus:ring-2 focus:ring-primary/10"
                       placeholder="URL directe du fichier audio (https://...)"
                     />
@@ -3464,8 +3464,8 @@ const LiveUpdateEditor = ({ update, onSave, onCancel }: { update: Partial<LiveUp
     content: update.content || '',
     date: update.date || new Date().toISOString(),
     type: update.type || 'info', // Default to info
-    imageUrl: update.imageUrl || '',
-    videoUrl: update.videoUrl || '',
+    imageurl: update.imageurl || '',
+    videourl: update.videourl || '',
     author: update.author || 'Rédaction'
   });
 
@@ -3491,8 +3491,8 @@ const LiveUpdateEditor = ({ update, onSave, onCancel }: { update: Partial<LiveUp
            <div className="space-y-1">
               <label className="text-[9px] font-black uppercase text-slate-400 px-2">Lien Image (Optionnel)</label>
               <GitHubImageUpload 
-                value={formData.imageUrl || ''}
-                onChange={(val) => setFormData({...formData, imageUrl: val, type: val ? 'media' : formData.type})}
+                value={formData.imageurl || ''}
+                onChange={(val) => setFormData({...formData, imageurl: val, type: val ? 'media' : formData.type})}
                 placeholder="https://... (image)"
                 icon={Camera}
                 inputClassName="bg-white border border-slate-100 py-2.5"
@@ -3506,8 +3506,8 @@ const LiveUpdateEditor = ({ update, onSave, onCancel }: { update: Partial<LiveUp
                   type="text"
                   placeholder="https://youtube.com/..."
                   className="w-full bg-white rounded-xl pl-9 pr-4 py-2.5 text-xs font-bold outline-none border border-slate-100"
-                  value={formData.videoUrl}
-                  onChange={e => setFormData({...formData, videoUrl: e.target.value, type: e.target.value ? 'media' : formData.type})}
+                  value={formData.videourl}
+                  onChange={e => setFormData({...formData, videourl: e.target.value, type: e.target.value ? 'media' : formData.type})}
                 />
               </div>
            </div>
@@ -3535,11 +3535,11 @@ const LiveUpdateEditor = ({ update, onSave, onCancel }: { update: Partial<LiveUp
 export const LiveBlogEditor = ({ blog, onSave, onCancel }: { blog: Partial<LiveBlog>, onSave: (b: LiveBlog) => void, onCancel: () => void }) => {
   const [formData, setFormData] = useState<LiveBlog>({
     id: blog.id || Date.now().toString(),
-    articleId: blog.articleId || '',
+    articleid: blog.articleid || '',
     title: blog.title || '',
     updates: blog.updates || [],
     status: blog.status || 'live',
-    createdAt: blog.createdAt || new Date().toISOString()
+    createdat: blog.createdat || new Date().toISOString()
   });
   const [isAddingUpdate, setIsAddingUpdate] = useState(false);
 
@@ -3596,10 +3596,10 @@ export const LiveBlogEditor = ({ blog, onSave, onCancel }: { blog: Partial<LiveB
               <label className="text-[10px] font-black uppercase text-slate-400 px-2">Date d'initialisation</label>
               <input 
                 type="date" 
-                value={(formData.createdAt || '').split('T')[0]} 
+                value={(formData.createdat || '').split('T')[0]} 
                 onChange={e => {
                   const sanitized = e.target.value ? e.target.value.replace(/[٠-٩]/g, (d:any) => (d.charCodeAt(0) - 1632).toString()).replace(/[۰-۹]/g, (d:any) => (d.charCodeAt(0) - 1776).toString()) : null;
-                  setFormData({...formData, createdAt: sanitized ? new Date(sanitized).toISOString() : new Date().toISOString()});
+                  setFormData({...formData, createdat: sanitized ? new Date(sanitized).toISOString() : new Date().toISOString()});
                 }}
                 className="w-full bg-slate-50 rounded-2xl px-6 py-3 text-xs font-bold outline-none border border-slate-100"
               />
@@ -3656,8 +3656,8 @@ export const LiveBlogEditor = ({ blog, onSave, onCancel }: { blog: Partial<LiveB
                       </div>
                       <p className="text-sm text-slate-700 leading-relaxed font-medium">{update.content}</p>
                       <div className="flex gap-4">
-                        {update.imageUrl && <img src={update.imageUrl} className="w-20 h-20 rounded-xl object-cover border border-slate-200" referrerPolicy="no-referrer" />}
-                        {update.videoUrl && (
+                        {update.imageurl && <img src={update.imageurl} className="w-20 h-20 rounded-xl object-cover border border-slate-200" referrerPolicy="no-referrer" />}
+                        {update.videourl && (
                           <div className="w-20 h-20 rounded-xl bg-slate-900 flex items-center justify-center text-red-500 border border-slate-200">
                             <Youtube size={24} />
                           </div>
@@ -3685,12 +3685,12 @@ export const WebTVEditor = ({ video, onSave, onCancel, categories }: { video: Pa
     id: video.id || Date.now().toString(),
     title: video.title || '',
     description: video.description || '',
-    videoUrl: video.videoUrl || '',
+    videourl: video.videourl || '',
     thumbnail: video.thumbnail || '',
     category: video.category || categories[0] || 'Web TV',
     date: video.date || new Date().toISOString(),
     views: video.views || 0,
-    isPremium: video.isPremium || false
+    ispremium: video.ispremium || false
   });
 
   return (
@@ -3759,8 +3759,8 @@ export const WebTVEditor = ({ video, onSave, onCancel, categories }: { video: Pa
                 type="text"
                 placeholder="https://www.youtube.com/watch?v=..."
                 className="w-full bg-slate-50 rounded-2xl px-6 py-4 text-sm font-bold outline-none border border-slate-100"
-                value={formData.videoUrl}
-                onChange={e => setFormData({...formData, videoUrl: e.target.value})}
+                value={formData.videourl}
+                onChange={e => setFormData({...formData, videourl: e.target.value})}
               />
            </div>
            <div className="space-y-2">

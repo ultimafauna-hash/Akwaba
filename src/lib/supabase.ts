@@ -176,6 +176,27 @@ export const SupabaseService = {
     if (error) throw error;
   },
 
+  async addToReadingHistory(userId: string, articleId: string): Promise<void> {
+    if (isPlaceholder) return;
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('history')
+      .eq('uid', userId)
+      .single();
+    
+    const history = (profile?.history as any[]) || [];
+    const newEntry = { articleid: articleId, date: new Date().toISOString() };
+    
+    // Limit history to 50 items and prevent duplicates
+    const filteredHistory = history.filter(h => h.articleid !== articleId).slice(0, 49);
+    const finalHistory = [newEntry, ...filteredHistory];
+
+    await supabase
+      .from('user_profiles')
+      .update({ history: finalHistory })
+      .eq('uid', userId);
+  },
+
   // Comments
   async getAllComments(): Promise<Comment[]> {
     if (isPlaceholder) return [];
@@ -546,7 +567,7 @@ export const SupabaseService = {
   },
 
   // Notifications
-  async subscribeToNotifications(userId: string, callback: (notifs: AppNotification[]) => void) {
+  subscribeToNotifications(userId: string, callback: (notifs: AppNotification[]) => void) {
     if (isPlaceholder) return () => {};
     this.getNotifications(userId).then(callback);
     const channel = supabase

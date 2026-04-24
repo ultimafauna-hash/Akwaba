@@ -216,7 +216,7 @@ export const AuthorProfile: React.FC<AuthorProfileProps> = ({
                         <Eye size={14} className="text-slate-300" /> {article.views} vus
                       </div>
                       <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        <Clock size={14} className="text-slate-300" /> {article.readingTime}
+                        <Clock size={14} className="text-slate-300" /> {article.readingtime}
                       </div>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all">
                         <ArrowRight size={20} className="text-primary" />

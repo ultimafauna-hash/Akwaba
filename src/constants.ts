@@ -25,20 +25,20 @@ export const MOCK_ARTICLES: Article[] = Object.entries(articleFiles).map(([path,
       image: data.image || undefined,
       video: data.video || undefined,
       author: data.author || 'Rédaction',
-      authorRole: data.authorRole || 'Journaliste',
+      authorrole: data.authorrole || data.authorRole || 'Journaliste',
       excerpt: data.excerpt || '',
       content: body || '',
-      readingTime: data.readingTime || '2 min',
+      readingtime: data.readingtime || data.readingTime || '2 min',
       views: data.views || 0,
       likes: data.likes || 0,
-      commentsCount: data.commentsCount || 0,
+      commentscount: data.commentscount || data.commentsCount || 0,
       tags: Array.isArray(data.tags) ? data.tags : (data.tags ? String(data.tags).split(',').map(t => t.trim()) : []),
       status: data.status || 'published',
-      scheduledAt: data.scheduledAt || null,
-      audioUrl: data.audioUrl || '',
+      scheduledat: data.scheduledat || data.scheduledAt || null,
+      audiourl: data.audiourl || data.audioUrl || '',
       gallery: data.gallery || [],
       source: data.source || '',
-      imageCredit: data.imageCredit || '',
+      imagecredit: data.imagecredit || data.imageCredit || '',
     } as Article;
   } catch (error) {
     console.error(`Error parsing article at ${path}:`, error);
@@ -118,9 +118,9 @@ export const MOCK_EVENTS: Event[] = Object.entries(eventFiles).map(([path, conte
       excerpt: data.excerpt || '',
       content: body || '',
       status: data.status || 'published',
-      scheduledAt: data.scheduledAt || null,
+      scheduledat: data.scheduledat || data.scheduledAt || null,
       gallery: data.gallery || [],
-      imageCredit: data.imageCredit || '',
+      imagecredit: data.imagecredit || data.imageCredit || '',
     } as Event;
   } catch (error) {
     console.error(`Error parsing event at ${path}:`, error);

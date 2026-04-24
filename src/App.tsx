@@ -12,6 +12,7 @@ import {
   Home,
   Globe,
   Map,
+  MapPin,
   User,
   Mail,
   Camera,
@@ -320,8 +321,8 @@ const TrendingSection = ({
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-0.5"><Eye size={10} /> {article.views}</span>
-                {article.commentsCount !== undefined && article.commentsCount > 0 && (
-                  <span className="flex items-center gap-0.5"><MessageSquare size={10} /> {article.commentsCount}</span>
+                {article.commentscount !== undefined && article.commentscount > 0 && (
+                  <span className="flex items-center gap-0.5"><MessageSquare size={10} /> {article.commentscount}</span>
                 )}
               </div>
             </div>
@@ -436,7 +437,7 @@ const ArticleCard = ({ article, onClick, variant = 'horizontal', onBookmark, isB
           <div className="flex justify-between items-start mb-1">
             <Badge category={article.category} icon={categoryIcon}>{article.category}</Badge>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400">{article.readingTime}</span>
+              <span className="text-[10px] text-slate-400">{article.readingtime}</span>
               {variant === 'horizontal' && (
                 <button 
                   onClick={(e) => onBookmark?.(article.id, e)}
@@ -748,12 +749,12 @@ const EventCard = ({ event, onClick }: { event: Event, onClick: (e: Event) => vo
       onClick={() => onClick(event)}
       className="bg-white rounded-[2rem] overflow-hidden shadow-lg border border-slate-100 cursor-pointer group hover:shadow-2xl transition-all duration-500 h-full flex flex-col group"
     >
-      <div className="relative h-56 overflow-hidden bg-slate-50">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-50">
         {event.image && (
           <img 
-            src={optimizeImage(event.image, 600)} 
+            src={optimizeImage(event.image, 800)} 
             alt={event.title} 
-            className="w-full h-full object-cover object-[center_top] transition-transform duration-700 group-hover:scale-110" 
+            className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105" 
             referrerPolicy="no-referrer"
           />
         )}
@@ -957,9 +958,9 @@ const EventDetailView = ({ event, onBack }: { event: Event, onBack: () => void }
                 loading="lazy"
                 decoding="async"
               />
-              {event.imageCredit && (
+              {event.imagecredit && (
                 <div className="px-6 py-3 bg-slate-900/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <Camera size={12} /> Source : {event.imageCredit}
+                  <Camera size={12} /> Source : {event.imagecredit}
                 </div>
               )}
             </div>
@@ -1203,8 +1204,8 @@ const ClassifiedsView = ({ classifieds, onBack, onAddClick }: { classifieds: Cla
         {filtered.length > 0 ? filtered.map(item => (
           <div key={item.id} className="bg-white rounded-[40px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
             <div className="aspect-[4/3] relative overflow-hidden bg-slate-100">
-               {item.imageUrl && (
-                 <img src={item.imageUrl} className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+               {item.imageurl && (
+                 <img src={item.imageurl} className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
                )}
                <div className="absolute top-4 left-4">
                  <Badge category={item.category}>{item.category}</Badge>
@@ -1295,9 +1296,9 @@ const LiveBlogView = ({ blog, onBack }: { blog: LiveBlog, onBack: () => void }) 
               <div className="markdown-body prose prose-slate max-w-none">
                 <ReactMarkdown>{update.content}</ReactMarkdown>
               </div>
-              {update.imageUrl && (
+              {update.imageurl && (
                 <div className="rounded-2xl overflow-hidden shadow-lg">
-                  <img src={update.imageUrl} className="w-full h-auto" referrerPolicy="no-referrer" />
+                  <img src={update.imageurl} className="w-full h-auto" referrerPolicy="no-referrer" />
                 </div>
               )}
               <div className="flex items-center gap-2 pt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -1449,7 +1450,7 @@ const ReadAlso = ({ currentArticle, articles, onArticleClick, onAuthorClick }: {
               <h5 className="font-display font-bold text-slate-900 group-hover:text-primary transition-colors leading-tight line-clamp-2">
                 {article.title}
               </h5>
-              <span className="text-[10px] text-slate-400 font-bold uppercase mt-1 block">{article.readingTime} de lecture</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase mt-1 block">{article.readingtime} de lecture</span>
             </div>
           </button>
         ))}
@@ -1729,12 +1730,12 @@ const SupportChatWidget = ({ user, isDarkMode }: { user: FirebaseUser | null, is
     if (!text.trim() || !user) return;
     const msg: SupportMessage = {
       id: Date.now().toString(),
-      userId: user.uid,
-      userName: user.displayName || 'Utilisateur',
-      userPhoto: user.photoURL || undefined,
+      userid: user.uid,
+      username: user.displayname || 'Utilisateur',
+      userphoto: user.photourl || undefined,
       content: text,
       date: new Date().toISOString(),
-      isAdmin: false
+      isadmin: false
     };
     setText('');
     try {
@@ -1809,17 +1810,17 @@ const SupportChatWidget = ({ user, isDarkMode }: { user: FirebaseUser | null, is
                 </div>
               ) : (
                 messages.map((msg) => (
-                  <div key={msg.id} className={cn("flex flex-col animate-in fade-in slide-in-from-bottom-2", msg.isAdmin ? "items-start" : "items-end")}>
+                  <div key={msg.id} className={cn("flex flex-col animate-in fade-in slide-in-from-bottom-2", msg.isadmin ? "items-start" : "items-end")}>
                     <div className={cn(
                       "max-w-[85%] p-4 rounded-3xl text-sm leading-relaxed",
-                      msg.isAdmin 
+                      msg.isadmin 
                         ? "bg-white text-slate-700 rounded-tl-none border border-slate-100 shadow-sm" 
                         : "bg-primary text-white rounded-tr-none shadow-lg shadow-primary/10"
                     )}>
                       {msg.content}
                     </div>
                     <span className="text-[8px] font-black text-slate-400 mt-2 uppercase tracking-tight opacity-60">
-                      {msg.isAdmin ? "Support Akwaba" : "Moi"} • {safeFormatDate(msg.date, 'HH:mm')}
+                      {msg.isadmin ? "Support Akwaba" : "Moi"} • {safeFormatDate(msg.date, 'HH:mm')}
                     </span>
                   </div>
                 ))
@@ -2261,16 +2262,16 @@ export default function App() {
     youtubeUrl: "https://youtube.com",
     categories: ['À la une', 'Urgent', 'Politique', 'Économie', 'Science', 'Santé', 'Culture', 'Sport', 'Afrique', 'Monde', 'Tech'],
     maintenanceMode: false,
-    urgentBannerActive: false,
-    urgentBannerText: "",
-    flashNews: "Côte d'Ivoire : Lancement d'un nouveau programme de soutien aux startups technologiques à Abidjan.;Économie : La ZLECAf annonce une progression record des échanges intra-africains pour le premier trimestre.;Sport : Les préparatifs de la prochaine CAN avancent à grands pas, inspection des stades terminée.;Culture : Le festival des musiques urbaines d'Anoumabo (FEMUA) dévoile sa programmation internationale.;Monde : Sommet extraordinaire de l'Union Africaine sur la sécurité alimentaire prévu le mois prochain.",
+    urgentbanneractive: false,
+    urgentbannertext: "",
+    flashnews: "Côte d'Ivoire : Lancement d'un nouveau programme de soutien aux startups technologiques à Abidjan.;Économie : La ZLECAf annonce une progression record des échanges intra-africains pour le premier trimestre.;Sport : Les préparatifs de la prochaine CAN avancent à grands pas, inspection des stades terminée.;Culture : Le festival des musiques urbaines d'Anoumabo (FEMUA) dévoile sa programmation internationale.;Monde : Sommet extraordinaire de l'Union Africaine sur la sécurité alimentaire prévu le mois prochain.",
     // Donations & Premium
     donationAmounts: [5000, 10000, 25000],
     donationPaymentMethods: ['PayPal', 'Orange Money', 'Wave', 'MTN', 'Moov', 'Stripe', 'Flutterwave'],
     premiumPrice: 5000,
-    isDonationActive: true,
-    isPremiumActive: true,
-    activePaymentMethods: {
+    isdonationactive: true,
+    ispremiumactive: true,
+    activepaymentmethods: {
       paypal: true,
       stripe: true,
       flutterwave: true,
@@ -2279,7 +2280,7 @@ export default function App() {
       moov: true,
       wave: true
     },
-    paymentLinks: {
+    paymentlinks: {
       paypal: "",
       stripe: "",
       flutterwave: "",
@@ -2292,18 +2293,18 @@ export default function App() {
     mtnMoneyNumber: "0505050505",
     moovMoneyNumber: "0101010101",
     waveNumber: "0708091011",
-    premiumDurationMonths: 1
+    premiumduration: 1
   });
   const [allComments, setAllComments] = useState<Comment[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
 
   useEffect(() => {
     // Pick first active payment method as default for donation view
-    if (siteSettings.activePaymentMethods) {
-      const firstActive = Object.entries(siteSettings.activePaymentMethods).find(([_, active]) => active)?.[0];
+    if (siteSettings.activepaymentmethods) {
+      const firstActive = Object.entries(siteSettings.activepaymentmethods).find(([_, active]) => active)?.[0];
       if (firstActive && !selectedPayment) setSelectedPayment(firstActive);
     }
-  }, [siteSettings.activePaymentMethods, selectedPayment]);
+  }, [siteSettings.activepaymentmethods, selectedPayment]);
 
   const getPaymentIcon = (method: string, isSelected: boolean) => {
     const className = isSelected ? "text-primary" : "text-slate-400";
@@ -2371,7 +2372,7 @@ export default function App() {
       { id: '2', text: "Peut-être, avec des moyens", votes: 230 },
       { id: '3', text: "Non, pas encore", votes: 120 }
     ],
-    startDate: new Date().toISOString(),
+    startdate: new Date().toISOString(),
     active: true
   });
   const [hasVoted, setHasVoted] = useState(false);
@@ -2702,7 +2703,7 @@ export default function App() {
       const method = params.get('method') || 'unknown';
       const amount = parseInt(params.get('amount') || '0') || siteSettings.premiumPrice;
 
-      SupabaseService.upgradeToPremium(currentUser.uid, method, siteSettings.premiumDurationMonths || 1)
+      SupabaseService.upgradeToPremium(currentUser.uid, method, siteSettings.premiumduration || 1)
         .then(() => {
           // Record the transaction for history
           SupabaseService.recordTransaction(
@@ -2717,8 +2718,8 @@ export default function App() {
           SupabaseService.getUserProfile(currentUser.uid).then(profile => {
             setCurrentUser(prev => prev ? { 
               ...prev, 
-              isPremium: true,
-              premiumUntil: profile?.premiumUntil 
+              ispremium: true,
+              premiumuntil: profile?.premiumuntil 
             } : null);
             setActiveNotification({ message: "Paiement confirmé ! Bienvenue dans le Club Premium.", type: 'success' });
             // Cleanup URL
@@ -2868,11 +2869,11 @@ export default function App() {
       const msgId = Date.now().toString();
       const message: SupportMessage = {
         id: msgId,
-        userId: currentUser?.uid || `visitor-${Date.now()}`,
-        userName: contactForm.name,
+        userid: currentUser?.uid || `visitor-${Date.now()}`,
+        username: contactForm.name,
         content: `MESSAGE CONTACT: ${contactForm.message}`,
         date: new Date().toISOString(),
-        isAdmin: false
+        isadmin: false
       };
       await SupabaseService.sendSupportMessage(message);
       setContactForm({ name: '', email: '', message: '' });
@@ -3052,7 +3053,7 @@ export default function App() {
 
   const handleValidateTransaction = async (tid: string, uid: string) => {
     try {
-      await SupabaseService.validatePremiumTransaction(tid, uid, siteSettings.premiumDurationMonths || 1);
+      await SupabaseService.validatePremiumTransaction(tid, uid, siteSettings.premiumduration || 1);
       setActiveNotification({ 
         message: "Transaction validée ! L'utilisateur a maintenant accès au contenu Premium.", 
         type: 'success' 
@@ -3267,15 +3268,15 @@ export default function App() {
     const author = currentUser?.displayName || commentAuthorName;
     const newComment: Comment = {
       id: Date.now().toString(),
-      userId: currentUser?.uid,
-      userPhoto: currentUser?.photoURL,
+      userid: currentUser?.uid,
+      userphoto: currentUser?.photourl,
       username: author,
       date: new Date().toISOString(),
       content: newCommentText,
       likes: 0,
-      likedBy: [],
+      likedby: [],
       replies: [],
-      articleId: articleId
+      articleid: articleId
     };
 
     try {
@@ -3360,7 +3361,7 @@ export default function App() {
     const target = findComment(commentPath);
     if (!target) return;
 
-    const isLiked = !target.likedBy?.includes(currentUser.uid);
+    const isLiked = !target.likedby?.includes(currentUser.uid);
     
     try {
       await SupabaseService.likeComment(commentId, currentUser.uid, isLiked);
@@ -3369,10 +3370,10 @@ export default function App() {
         const updateLikes = (comments: Comment[]): Comment[] => {
           return comments.map(c => {
             if (c.id === commentId) {
-              const likedBy = isLiked 
-                ? [...(c.likedBy || []), currentUser.uid] 
-                : (c.likedBy || []).filter(id => id !== currentUser.uid);
-              return { ...c, likes: (c.likes || 0) + (isLiked ? 1 : -1), likedBy };
+              const likedby = isLiked 
+                ? [...(c.likedby || []), currentUser.uid] 
+                : (c.likedby || []).filter(id => id !== currentUser.uid);
+              return { ...c, likes: (c.likes || 0) + (isLiked ? 1 : -1), likedby };
             }
             if (c.replies.length > 0) {
               return { ...c, replies: updateLikes(c.replies) };
@@ -3487,7 +3488,7 @@ export default function App() {
     ? adminArticles 
     : adminArticles.filter(a => {
         const isPublished = a.status === 'published';
-        const isNotScheduled = !a.scheduledAt || new Date(a.scheduledAt) <= new Date();
+        const isNotScheduled = !a.scheduledat || new Date(a.scheduledat) <= new Date();
         return isPublished && isNotScheduled;
       });
 
@@ -3495,7 +3496,7 @@ export default function App() {
     ? adminEvents 
     : adminEvents.filter(e => {
         const isPublished = e.status === 'published';
-        const isNotScheduled = !e.scheduledAt || new Date(e.scheduledAt) <= new Date();
+        const isNotScheduled = !e.scheduledat || new Date(e.scheduledat) <= new Date();
         return isPublished && isNotScheduled;
       });
 
@@ -3695,8 +3696,8 @@ export default function App() {
     restDelta: 0.001
   });
 
-  const FLASH_NEWS = siteSettings.flashNews 
-    ? siteSettings.flashNews.split(';').filter(n => n.trim().length > 0)
+  const FLASH_NEWS = siteSettings.flashnews 
+    ? siteSettings.flashnews.split(';').filter(n => n.trim().length > 0)
     : [
         "Côte d'Ivoire : Lancement d'un nouveau programme de soutien aux startups technologiques à Abidjan.",
         "Économie : La ZLECAf annonce une progression record des échanges intra-africains pour le premier trimestre.",
@@ -3715,8 +3716,8 @@ export default function App() {
     .sort((a, b) => {
       const likesA = (a.likes || 0) + (articleLikes[a.id] || 0);
       const likesB = (b.likes || 0) + (articleLikes[b.id] || 0);
-      const commentsA = (a.commentsCount || 0) + (articleComments[a.id]?.length || 0);
-      const commentsB = (b.commentsCount || 0) + (articleComments[b.id]?.length || 0);
+      const commentsA = (a.commentscount || 0) + (articleComments[a.id]?.length || 0);
+      const commentsB = (b.commentscount || 0) + (articleComments[b.id]?.length || 0);
       
       const scoreA = (a.views || 0) + likesA * 2 + commentsA * 5;
       const scoreB = (b.views || 0) + likesB * 2 + commentsB * 5;
@@ -3751,19 +3752,19 @@ export default function App() {
       </AnimatePresence>
 
       {/* Urgent Banner */}
-      {siteSettings.urgentBannerActive && siteSettings.urgentBannerText && (
+      {siteSettings.urgentbanneractive && siteSettings.urgentbannertext && (
         <div className="bg-red-600 text-white overflow-hidden py-3 text-xs font-black uppercase tracking-widest sticky top-0 z-[100] shadow-xl">
            <motion.div 
              animate={{ x: [0, -1000] }}
              transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
              className="whitespace-nowrap flex gap-20 items-center justify-center"
            >
-             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentBannerText}</div>
-             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentBannerText}</div>
-             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentBannerText}</div>
-             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentBannerText}</div>
-             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentBannerText}</div>
-             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentBannerText}</div>
+             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentbannertext}</div>
+             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentbannertext}</div>
+             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentbannertext}</div>
+             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentbannertext}</div>
+             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentbannertext}</div>
+             <div className="flex items-center gap-4"><AlertTriangle size={16}/> URGENT : {siteSettings.urgentbannertext}</div>
            </motion.div>
         </div>
       )}
@@ -4488,20 +4489,20 @@ export default function App() {
                         {selectedArticle.author[0]}
                       </div>
                       <span className="font-bold text-slate-900 group-hover:text-primary transition-colors">{selectedArticle.author}</span>
-                      {selectedArticle.authorRole && (
+                      {selectedArticle.authorrole && (
                         <span className="text-[10px] bg-primary/5 text-primary px-2 py-0.5 rounded font-bold uppercase ml-1">
-                          {selectedArticle.authorRole}
+                          {selectedArticle.authorrole}
                         </span>
                       )}
                     </div>
                     <span>•</span>
                   <span>{safeFormatDate(selectedArticle.date, 'dd MMMM yyyy')}</span>
                   <span>•</span>
-                  <span className="flex items-center gap-1"><Clock size={14} /> {selectedArticle.readingTime}</span>
+                  <span className="flex items-center gap-1"><Clock size={14} /> {selectedArticle.readingtime}</span>
                 </div>
               </div>
 
-              {selectedArticle.audioUrl && (
+              {selectedArticle.audiourl && (
                 <div className="bg-slate-900 rounded-[30px] p-6 text-white shadow-2xl border border-white/10 mt-8 mb-4">
                   <div className="flex items-center gap-6">
                     <div className="p-4 bg-primary/20 rounded-2xl text-primary animate-pulse">
@@ -4511,7 +4512,7 @@ export default function App() {
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Audio / Podcast</p>
                       <h4 className="font-bold text-sm italic">Écouter la version audio</h4>
                       <audio controls className="w-full h-8 mt-2 accent-primary">
-                        <source src={selectedArticle.audioUrl} type="audio/mpeg" />
+                        <source src={selectedArticle.audiourl} type="audio/mpeg" />
                         Navigateur non supporté
                       </audio>
                     </div>
@@ -4543,9 +4544,9 @@ export default function App() {
                         loading="lazy"
                         decoding="async"
                       />
-                      {selectedArticle.imageCredit && (
+                      {selectedArticle.imagecredit && (
                         <div className="px-6 py-3 bg-slate-900/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Camera size={12} /> Source : {selectedArticle.imageCredit}
+                          <Camera size={12} /> Source : {selectedArticle.imagecredit}
                         </div>
                       )}
                     </div>
@@ -4578,7 +4579,7 @@ export default function App() {
                   
                   <div className="markdown-body text-base md:text-lg leading-relaxed relative">
                     {(() => {
-                      const isPremiumArticle = selectedArticle.isPremium;
+                      const isPremiumArticle = selectedArticle.ispremium;
                       const hasAccess = !isPremiumArticle || (currentUser && currentUser.isPremium);
                       
                       const content = selectedArticle.content || '';
@@ -4712,7 +4713,7 @@ export default function App() {
                           <div className="p-3 rounded-full bg-slate-100 group-hover:bg-primary/10 transition-colors">
                             <MessageSquare size={24} />
                           </div>
-                          <span className="font-bold">{(selectedArticle.commentsCount || 0) + (articleComments[selectedArticle.id]?.length || 0)}</span>
+                          <span className="font-bold">{(selectedArticle.commentscount || 0) + (articleComments[selectedArticle.id]?.length || 0)}</span>
                         </button>
                       </div>
                       <div className="flex items-center gap-3">
@@ -4920,7 +4921,7 @@ export default function App() {
                          </div>
                          <div className="flex-1">
                             <div className="font-bold text-sm group-hover:text-primary transition-colors">{selectedArticle.author}</div>
-                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{selectedArticle.authorRole || 'Journaliste'}</div>
+                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{selectedArticle.authorrole || 'Journaliste'}</div>
                          </div>
                       </div>
                       <button 
@@ -5135,7 +5136,7 @@ export default function App() {
               followedCategories={userFollowedCategories}
               badges={userBadges}
               points={userPoints}
-              comments={Object.values(articleComments).flat().filter(c => c.userId === currentUser.uid)}
+              comments={Object.values(articleComments).flat().filter(c => c.userid === currentUser.uid)}
               onArticleClick={handleArticleClick}
               onLogout={handleUserLogout}
               onAuthorClick={handleAuthorClick}
@@ -5222,7 +5223,7 @@ export default function App() {
                     <div className="space-y-4">
                       <h4 className="font-bold text-sm font-display uppercase tracking-widest text-[10px] text-slate-400">Mode de paiement sécurisé</h4>
                       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                        {Object.entries(siteSettings.activePaymentMethods || {}).filter(([_, active]) => active).map(([method]) => (
+                        {Object.entries(siteSettings.activepaymentmethods || {}).filter(([_, active]) => active).map(([method]) => (
                           <button 
                             key={method}
                             onClick={() => setSelectedPayment(method)}
@@ -5251,14 +5252,14 @@ export default function App() {
                                 {(() => {
                                   const details = (() => {
                                     switch(selectedPayment) {
-                                      case 'paypal': return siteSettings.paymentLinks?.paypal;
-                                      case 'stripe': return siteSettings.paymentLinks?.stripe;
-                                      case 'flutterwave': return siteSettings.paymentLinks?.flutterwave;
+                                      case 'paypal': return siteSettings.paymentlinks?.paypal;
+                                      case 'stripe': return siteSettings.paymentlinks?.stripe;
+                                      case 'flutterwave': return siteSettings.paymentlinks?.flutterwave;
                                       case 'orangeMoney': return siteSettings.orangeMoneyNumber ? `Transfert au ${siteSettings.orangeMoneyNumber}` : null;
                                       case 'wave': return siteSettings.waveNumber ? `Transfert au ${siteSettings.waveNumber}` : null;
                                       case 'mtn': return siteSettings.mtnMoneyNumber ? `Transfert au ${siteSettings.mtnMoneyNumber}` : null;
                                       case 'moov': return siteSettings.moovMoneyNumber ? `Transfert au ${siteSettings.moovMoneyNumber}` : null;
-                                      default: return siteSettings.paymentLinks?.[selectedPayment as keyof typeof siteSettings.paymentLinks] || "Instructions manuelles";
+                                      default: return siteSettings.paymentlinks?.[selectedPayment as keyof typeof siteSettings.paymentlinks] || "Instructions manuelles";
                                     }
                                   })();
                                   
@@ -5337,7 +5338,7 @@ export default function App() {
                   id: v.id,
                   title: v.title,
                   content: v.description,
-                  video: v.videoUrl,
+                  video: v.videourl,
                   image: v.thumbnail,
                   category: v.category,
                   date: v.date,
@@ -5346,7 +5347,7 @@ export default function App() {
                   likes: 0,
                   slug: v.id,
                   excerpt: v.description.substring(0, 100),
-                  readingTime: "5 min",
+                  readingtime: "5 min",
                   status: 'published'
               };
               handleArticleClick(mockArticle);
@@ -5756,7 +5757,7 @@ Dernière mise à jour : Avril 2026
                   onCreateEvent={() => setEditingEvent({ id: crypto.randomUUID(), date: new Date().toISOString().split('T')[0] } as any)}
                   onCreatePoll={() => setEditingPoll({ id: crypto.randomUUID(), startDate: new Date().toISOString().split('T')[0], options: [{id: '1', text: '', votes: 0}, {id: '2', text: '', votes: 0}], active: true } as any)}
                   onCreateLiveBlog={() => setEditingLiveBlog({ id: crypto.randomUUID(), title: '', updates: [], status: 'live', createdAt: new Date().toISOString() } as any)}
-                  onCreateWebTV={() => setEditingWebTV({ id: crypto.randomUUID(), title: '', description: '', videoUrl: '', thumbnail: '', category: 'Web TV', date: new Date().toISOString(), views: 0 } as any)}
+                  onCreateWebTV={() => setEditingWebTV({ id: crypto.randomUUID(), title: '', description: '', videourl: '', thumbnail: '', category: 'Web TV', date: new Date().toISOString(), views: 0 } as any)}
                   onCreateClassified={() => setEditingClassified({ id: crypto.randomUUID(), title: '', description: '', category: 'divers', location: '', contact: '', date: new Date().toISOString(), status: 'active', userid: currentUser?.uid || 'admin', username: currentUser?.displayname || 'Admin' } as any)}
                   onDeleteArticle={handleDeleteArticle}
                   onDeleteEvent={handleDeleteEvent}
@@ -5775,7 +5776,6 @@ Dernière mise à jour : Avril 2026
                   setActiveNotification={setActiveNotification}
                   stats={adminStats}
                   currentUser={currentUser}
-                  onSaveSettings={handleSaveSettings}
                 />
               )
             ) : (
@@ -5819,8 +5819,8 @@ Dernière mise à jour : Avril 2026
               </h2>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed">
-              {siteSettings.aboutText.length > 200 
-                ? `${siteSettings.aboutText.substring(0, 197)}...` 
+              {(siteSettings.aboutText || "").length > 200 
+                ? `${siteSettings.aboutText?.substring(0, 197)}...` 
                 : siteSettings.aboutText}
             </p>
               <div className="flex gap-4">
@@ -5973,7 +5973,7 @@ Dernière mise à jour : Avril 2026
             }} 
             onUpgrade={handleUpgradePremium}
             price={siteSettings.premiumPrice}
-            activeMethods={siteSettings.activePaymentMethods}
+            activeMethods={siteSettings.activepaymentmethods}
             settings={siteSettings}
             getPaymentIcon={getPaymentIcon}
             getPaymentLabel={getPaymentLabel}
@@ -6008,14 +6008,14 @@ const PremiumModal = ({ onClose, onUpgrade, price, activeMethods, settings, getP
 
   const getPaymentDetails = (method: string) => {
     switch(method) {
-      case 'paypal': return settings.paymentLinks?.paypal || (settings.paypalId ? `ID: ${settings.paypalId}` : null);
-      case 'stripe': return settings.paymentLinks?.stripe || (settings.stripePublicKey ? "Paiement par Carte" : null);
-      case 'flutterwave': return settings.paymentLinks?.flutterwave || "Paiement via Flutterwave";
+      case 'paypal': return settings.paymentlinks?.paypal || (settings.paypalId ? `ID: ${settings.paypalId}` : null);
+      case 'stripe': return settings.paymentlinks?.stripe || (settings.stripePublicKey ? "Paiement par Carte" : null);
+      case 'flutterwave': return settings.paymentlinks?.flutterwave || "Paiement via Flutterwave";
       case 'orangeMoney': return settings.orangeMoneyNumber ? `Transfert au ${settings.orangeMoneyNumber}` : null;
       case 'wave': return settings.waveNumber ? `Transfert au ${settings.waveNumber}` : null;
       case 'mtn': return settings.mtnMoneyNumber ? `Transfert au ${settings.mtnMoneyNumber}` : null;
       case 'moov': return settings.moovMoneyNumber ? `Transfert au ${settings.moovMoneyNumber}` : null;
-      default: return settings.paymentLinks?.[method as keyof typeof settings.paymentLinks] || null;
+      default: return settings.paymentlinks?.[method as keyof typeof settings.paymentlinks] || null;
     }
   };
 

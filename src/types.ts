@@ -59,6 +59,7 @@ export interface Comment {
   articleid: string;
   reportedby?: string[]; // Array of user IDs who reported
   isreported?: boolean;
+  replies: Comment[];
 }
 
 export interface UserProfile {
